@@ -1,4 +1,4 @@
-.PHONY: build run test clean help db-up db-down db-reset docker-build docker-up docker-down docker-logs
+.PHONY: build run test clean help db-up db-down db-reset docker-build docker-up docker-down docker-logs docker-restart swagger migrate deps dev fmt lint
 
 # Build the application
 build:
@@ -75,11 +75,6 @@ test:
 	@echo "Running tests..."
 	@go test -v ./...
 
-# Test API endpoints (requires server to be running)
-test-api:
-	@echo "Testing API endpoints..."
-	@./test_api.sh
-
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -122,14 +117,15 @@ help:
 	@echo "Local Development:"
 	@echo "  make build     - Build the application"
 	@echo "  make run       - Start database and run application locally"
+	@echo "  make swagger   - Generate Swagger documentation"
+	@echo ""
+	@echo "Database:"
 	@echo "  make db-up     - Start PostgreSQL only"
 	@echo "  make db-down   - Stop PostgreSQL only"
 	@echo "  make db-reset  - Reset database (fresh start)"
-	@echo "  make swagger   - Generate Swagger documentation"
 	@echo ""
 	@echo "Testing & Quality:"
 	@echo "  make test      - Run unit tests"
-	@echo "  make test-api  - Test API endpoints (server must be running)"
 	@echo "  make fmt       - Format code"
 	@echo "  make lint      - Run linter"
 	@echo ""

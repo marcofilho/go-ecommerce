@@ -17,6 +17,7 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 ### Prerequisites
 
 - Docker and Docker Compose
+- (Optional) Go 1.24.1+ for local development
 
 ### Setup
 
@@ -45,9 +46,14 @@ make run
 
 Server starts at `http://localhost:8080`
 
-**Swagger UI:** `http://localhost:8080/swagger/`
+**Swagger UI:** `http://localhost:8080/swagger/index.html`
 
 ### Test API
+
+**Via Swagger UI (Recommended):**
+Visit `http://localhost:8080/swagger/index.html` for interactive API testing
+
+**Via curl:**
 
 ```bash
 # Create a product
@@ -89,7 +95,10 @@ src/
 ├── internal/
 │   ├── domain/           # Entities & repository interfaces
 │   ├── infrastructure/   # Repository implementations (PostgreSQL)
-│   └── adapter/http/     # HTTP handlers & DTOs
+│   ├── adapter/http/
+│   │   ├── handler/      # HTTP handlers
+│   │   └── dto/          # Data Transfer Objects
+│   └── config/           # Configuration
 └── usecase/              # Business logic
 ```
 
