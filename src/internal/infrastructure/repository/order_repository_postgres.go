@@ -30,7 +30,7 @@ func (r *OrderRepositoryPostgres) GetByID(ctx context.Context, id uuid.UUID) (*e
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("order not found")
+			return nil, errors.New("Order not found")
 		}
 		return nil, err
 	}
@@ -44,7 +44,6 @@ func (r *OrderRepositoryPostgres) GetAll(ctx context.Context, page, pageSize int
 
 	query := r.db.WithContext(ctx).Model(&entity.Order{})
 
-	// Apply filters
 	if status != nil {
 		query = query.Where("status = ?", *status)
 	}
@@ -52,12 +51,10 @@ func (r *OrderRepositoryPostgres) GetAll(ctx context.Context, page, pageSize int
 		query = query.Where("payment_status = ?", *paymentStatus)
 	}
 
-	// Get total count
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// Apply pagination and preload items
 	offset := (page - 1) * pageSize
 	err := query.Preload("Products").Offset(offset).Limit(pageSize).Find(&orders).Error
 
@@ -76,7 +73,7 @@ func (r *OrderRepositoryPostgres) Update(ctx context.Context, order *entity.Orde
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("order not found")
+		return errors.New("Order not found")
 	}
 
 	return nil

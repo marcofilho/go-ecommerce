@@ -21,27 +21,15 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 
 ### Setup
 
-**Option 1: Full Stack (Recommended)**
-
 ```bash
-# Build and start everything (PostgreSQL + API)
-make docker-up
+# Start everything (PostgreSQL + API)
+make up
 
 # View logs
-make docker-logs
+make logs
 
 # Stop everything
-make docker-down
-```
-
-**Option 2: Local Development**
-
-```bash
-# Start only PostgreSQL
-make db-up
-
-# Run API locally (requires Go 1.24.1+)
-make run
+make down
 ```
 
 Server starts at `http://localhost:8080`
@@ -92,18 +80,8 @@ curl -X POST http://localhost:8080/api/orders \
 Run all unit tests:
 
 ```bash
-# Run all tests
+# Run tests in Docker
 make test
-
-# Run tests with coverage
-go test ./... -cover
-
-# Run tests with verbose output
-go test ./... -v
-
-# Generate HTML coverage report
-go test ./... -coverprofile=coverage.out
-go tool cover -html=coverage.out -o coverage.html
 ```
 
 **Test Coverage:**
@@ -140,24 +118,12 @@ src/
 
 ## Make Commands
 
-**Docker (Full Stack):**
-
 ```bash
-make docker-up       # Start all services (PostgreSQL + API)
-make docker-down     # Stop all services
-make docker-logs     # View logs
-make docker-restart  # Restart all services
-make docker-build    # Rebuild Docker image
-```
-
-**Local Development:**
-
-```bash
-make db-up      # Start PostgreSQL only
-make db-down    # Stop PostgreSQL only
-make db-reset   # Reset database
-make run        # Run API locally
-make build      # Build binary
+make up     # Start all services (PostgreSQL + API)
+make down   # Stop all services
+make logs   # View service logs
+make test   # Run tests in Docker
+make help   # Show available commands
 ```
 
 ## Configuration

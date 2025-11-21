@@ -30,7 +30,7 @@ func (r *ProductRepositoryPostgres) GetByID(ctx context.Context, id uuid.UUID) (
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("product not found")
+			return nil, errors.New("Product not found")
 		}
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (r *ProductRepositoryPostgres) Update(ctx context.Context, product *entity.
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("product not found")
+		return errors.New("Product not found")
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (r *ProductRepositoryPostgres) Delete(ctx context.Context, id uuid.UUID) er
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("product not found")
+		return errors.New("Product not found")
 	}
 
 	return nil

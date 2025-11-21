@@ -12,7 +12,7 @@ import (
 func Connect(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("Failed to connect to database: %w", err)
 	}
 	return db, nil
 }

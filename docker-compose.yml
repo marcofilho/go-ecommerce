@@ -22,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
     container_name: ecommerce_api
     environment:
       DB_HOST: postgres
@@ -35,6 +36,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    container_name: ecommerce_test
+    environment:
+      CGO_ENABLED: 0
+    command: go test ./... -v -cover
+    profiles:
+      - test
     networks:
       - ecommerce_network
 

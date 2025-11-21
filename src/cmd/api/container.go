@@ -31,15 +31,12 @@ type Container struct {
 func NewContainer(db *gorm.DB) *Container {
 	c := &Container{DB: db}
 
-	// Initialize repositories
 	c.ProductRepo = infraRepo.NewProductRepositoryPostgres(db)
 	c.OrderRepo = infraRepo.NewOrderRepositoryPostgres(db)
 
-	// Initialize use cases
 	c.ProductUseCase = productUseCase.NewUseCase(c.ProductRepo)
 	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo)
 
-	// Initialize handlers
 	c.ProductHandler = handler.NewProductHandler(c.ProductUseCase)
 	c.OrderHandler = handler.NewOrderHandler(c.OrderUseCase)
 
