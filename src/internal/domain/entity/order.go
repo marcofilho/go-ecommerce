@@ -47,7 +47,7 @@ func (o *Order) Validate() error {
 		return errors.New("customer ID is required")
 	}
 	if len(o.Items) == 0 {
-		return errors.New("order must have at least one item")
+		return errors.New("Order must have at least one product")
 	}
 	for _, item := range o.Items {
 		if err := item.Validate(); err != nil {
@@ -62,6 +62,7 @@ func (o *Order) CalculateTotal() {
 	for _, item := range o.Items {
 		total += item.Subtotal()
 	}
+
 	o.TotalPrice = total
 }
 
@@ -72,14 +73,17 @@ func (o *Order) CanTransitionTo(newStatus OrderStatus) error {
 			return nil
 		}
 	}
-	return errors.New("invalid status transition")
+
+	return errors.New("Invalid status transition")
 }
 
 func (o *Order) UpdateStatus(newStatus OrderStatus) error {
 	if err := o.CanTransitionTo(newStatus); err != nil {
 		return err
 	}
+
 	o.Status = newStatus
 	o.UpdatedAt = time.Now()
+
 	return nil
 }

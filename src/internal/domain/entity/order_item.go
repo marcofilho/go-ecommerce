@@ -16,13 +16,13 @@ type OrderItem struct {
 
 func (oi *OrderItem) Validate() error {
 	if oi.ProductID == uuid.Nil {
-		return errors.New("product ID is required")
+		return errors.New("Product ID is required")
 	}
 	if oi.Quantity <= 0 {
-		return errors.New("quantity must be greater than 0")
+		return errors.New("Quantity must be greater than 0")
 	}
 	if oi.Price < 0 {
-		return errors.New("price cannot be negative")
+		return errors.New("Price cannot be negative")
 	}
 	return nil
 }

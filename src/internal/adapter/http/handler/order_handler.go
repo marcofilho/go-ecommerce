@@ -23,7 +23,7 @@ func NewOrderHandler(useCase *order.UseCase) *OrderHandler {
 
 // CreateOrder godoc
 // @Summary Create a new order
-// @Description Create a new order with the provided items
+// @Description Create a new order with the provided products
 // @Tags orders
 // @Accept json
 // @Produce json
@@ -88,6 +88,7 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := dto.ToOrderResponse(order)
+
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -136,6 +137,7 @@ func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := dto.ToOrderListResponse(orders, total, page, pageSize)
+
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -173,5 +175,6 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 	}
 
 	response := dto.ToOrderResponse(order)
+
 	respondJSON(w, http.StatusOK, response)
 }
