@@ -15,16 +15,30 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 
 ### Prerequisites
 
-- Go 1.24.1+
 - Docker and Docker Compose
 
 ### Setup
 
+**Option 1: Full Stack (Recommended)**
+
 ```bash
-# Start PostgreSQL
+# Build and start everything (PostgreSQL + API)
+make docker-up
+
+# View logs
+make docker-logs
+
+# Stop everything
+make docker-down
+```
+
+**Option 2: Local Development**
+
+```bash
+# Start only PostgreSQL
 make db-up
 
-# Run the server
+# Run API locally (requires Go 1.24.1+)
 make run
 ```
 
@@ -78,13 +92,24 @@ src/
 
 ## Make Commands
 
+**Docker (Full Stack):**
+
 ```bash
-make db-up      # Start PostgreSQL
-make db-down    # Stop PostgreSQL
+make docker-up       # Start all services (PostgreSQL + API)
+make docker-down     # Stop all services
+make docker-logs     # View logs
+make docker-restart  # Restart all services
+make docker-build    # Rebuild Docker image
+```
+
+**Local Development:**
+
+```bash
+make db-up      # Start PostgreSQL only
+make db-down    # Stop PostgreSQL only
 make db-reset   # Reset database
-make run        # Run application
+make run        # Run API locally
 make build      # Build binary
-make clean      # Clean artifacts
 ```
 
 ## Configuration

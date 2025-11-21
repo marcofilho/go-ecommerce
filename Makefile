@@ -1,4 +1,4 @@
-.PHONY: build run test clean help db-up db-down db-reset
+.PHONY: build run test clean help db-up db-down db-reset docker-build docker-up docker-down docker-logs
 
 # Build the application
 build:
@@ -6,10 +6,35 @@ build:
 	@go build -o bin/api ./src/cmd/api
 	@echo "Build complete! Binary located at bin/api"
 
-# Start PostgreSQL database
+# Build Docker image
+docker-build:
+	@echo "Building Docker image..."
+	@docker-compose build
+	@echo "Docker image built!"
+
+# Start all services (PostgreSQL + API)
+docker-up:
+	@echo "Starting all services..."
+	@docker-compose up -d
+	@echo "Services started! API: http://localhost:8080"
+
+# Stop all services
+docker-down:
+	@echo "Stopping all services..."
+	@docker-compose down
+	@echo "Services stopped!"
+
+# View logs from all services
+docker-logs:
+	@docker-compose logs -f
+
+# Restart all services
+docker-restart: docker-down docker-up
+
+# Start PostgreSQL only
 db-up:
 	@echo "Starting PostgreSQL database..."
-	@docker-compose up -d
+	@docker-compose up -d postgres
 	@echo "Waiting for database to be ready..."
 	@sleep 3
 	@echo "Database is ready!"
@@ -17,14 +42,14 @@ db-up:
 # Stop PostgreSQL database
 db-down:
 	@echo "Stopping PostgreSQL database..."
-	@docker-compose down
+	@docker-compose stop postgres
 	@echo "Database stopped!"
 
 # Reset database (stop, remove volumes, and start fresh)
 db-reset:
 	@echo "Resetting database..."
 	@docker-compose down -v
-	@docker-compose up -d
+	@docker-compose up -d postgres
 	@echo "Waiting for database to be ready..."
 	@sleep 3
 	@echo "Database reset complete!"
@@ -80,18 +105,29 @@ lint:
 # Show help
 help:
 	@echo "Available commands:"
+	@echo ""
+	@echo "Docker (Full Stack):"
+	@echo "  make docker-build   - Build Docker image for API"
+	@echo "  make docker-up      - Start all services (PostgreSQL + API)"
+	@echo "  make docker-down    - Stop all services"
+	@echo "  make docker-logs    - View logs from all services"
+	@echo "  make docker-restart - Restart all services"
+	@echo ""
+	@echo "Local Development:"
 	@echo "  make build     - Build the application"
-	@echo "  make run       - Start database and run the application"
-	@echo "  make db-up     - Start PostgreSQL database"
-	@echo "  make db-down   - Stop PostgreSQL database"
+	@echo "  make run       - Start database and run application locally"
+	@echo "  make db-up     - Start PostgreSQL only"
+	@echo "  make db-down   - Stop PostgreSQL only"
 	@echo "  make db-reset  - Reset database (fresh start)"
-	@echo "  make migrate   - Run database migrations"
+	@echo ""
+	@echo "Testing & Quality:"
 	@echo "  make test      - Run unit tests"
 	@echo "  make test-api  - Test API endpoints (server must be running)"
-	@echo "  make clean     - Remove build artifacts"
-	@echo "  make deps      - Install dependencies"
-	@echo "  make dev       - Run with hot reload (requires air)"
 	@echo "  make fmt       - Format code"
 	@echo "  make lint      - Run linter"
+	@echo ""
+	@echo "Other:"
+	@echo "  make clean     - Remove build artifacts"
+	@echo "  make deps      - Install dependencies"
 	@echo "  make help      - Show this help message"
 
