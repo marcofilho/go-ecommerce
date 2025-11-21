@@ -11,7 +11,7 @@ import (
 
 // @title Go E-Commerce API
 // @version 1.0
-// @description RESTful API for managing products and orders in an e-commerce system
+// @description RESTful API for managing products and orders in an e-commerce system with payment webhook integration
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -36,7 +36,7 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
-	container := NewContainer(db)
+	container := NewContainer(db, cfg)
 
 	mux := SetupRoutes(container)
 

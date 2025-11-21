@@ -26,5 +26,9 @@ func SetupRoutes(c *Container) *http.ServeMux {
 	mux.HandleFunc("GET /api/orders/{id}", c.OrderHandler.GetOrder)
 	mux.HandleFunc("PUT /api/orders/{id}/status", c.OrderHandler.UpdateOrderStatus)
 
+	// Payment webhook routes
+	mux.HandleFunc("POST /api/payment-webhook", c.PaymentHandler.PaymentWebhookHandler)
+	mux.HandleFunc("GET /api/orders/{id}/payment-history", c.PaymentHandler.GetWebhookHistoryHandler)
+
 	return mux
 }
