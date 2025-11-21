@@ -4,9 +4,25 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/marcofilho/go-ecommerce/docs"
 	"github.com/marcofilho/go-ecommerce/src/internal/config"
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/database"
 )
+
+// @title Go E-Commerce API
+// @version 1.0
+// @description RESTful API for managing products and orders in an e-commerce system
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email marco@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api
+// @schemes http
 
 func main() {
 	// Load configuration

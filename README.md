@@ -10,6 +10,7 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - Pagination & filtering
 - PostgreSQL with GORM ORM
 - Automatic migrations
+- **Swagger/OpenAPI documentation** - Interactive API testing at `/swagger/`
 
 ## Quick Start
 
@@ -43,6 +44,8 @@ make run
 ```
 
 Server starts at `http://localhost:8080`
+
+**Swagger UI:** `http://localhost:8080/swagger/`
 
 ### Test API
 

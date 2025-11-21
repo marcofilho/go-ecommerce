@@ -59,6 +59,12 @@ migrate: db-up
 	@echo "Running database migrations..."
 	@go run ./src/cmd/migrate/main.go
 
+# Generate Swagger documentation
+swagger:
+	@echo "Generating Swagger documentation..."
+	@$(HOME)/go/bin/swag init -g src/cmd/api/main.go -o docs
+	@echo "Swagger docs generated! Visit http://localhost:8080/swagger/ after starting the server"
+
 # Run the application (starts database if not running)
 run: db-up build
 	@echo "Starting server..."
@@ -119,6 +125,7 @@ help:
 	@echo "  make db-up     - Start PostgreSQL only"
 	@echo "  make db-down   - Stop PostgreSQL only"
 	@echo "  make db-reset  - Reset database (fresh start)"
+	@echo "  make swagger   - Generate Swagger documentation"
 	@echo ""
 	@echo "Testing & Quality:"
 	@echo "  make test      - Run unit tests"

@@ -1,10 +1,17 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	httpSwagger "github.com/swaggo/http-swagger"
+)
 
 // SetupRoutes configures all application routes
 func SetupRoutes(c *Container) *http.ServeMux {
 	mux := http.NewServeMux()
+
+	// Swagger documentation
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// Product routes
 	mux.HandleFunc("POST /api/products", c.ProductHandler.CreateProduct)

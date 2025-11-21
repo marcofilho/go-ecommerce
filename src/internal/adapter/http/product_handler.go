@@ -20,6 +20,16 @@ func NewProductHandler(useCase *product.UseCase) *ProductHandler {
 	}
 }
 
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product with the provided information
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param product body dto.ProductRequest true "Product information"
+// @Success 201 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Router /products [post]
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	var req dto.ProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -37,6 +47,17 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusCreated, response)
 }
 
+// GetProduct godoc
+// @Summary Get a product by ID
+// @Description Get detailed information about a specific product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Success 200 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Router /products/{id} [get]
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := uuid.Parse(idStr)
@@ -55,6 +76,18 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
+// ListProducts godoc
+// @Summary List all products
+// @Description Get a paginated list of products with optional filtering
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Items per page" default(10)
+// @Param in_stock_only query bool false "Filter products in stock only"
+// @Success 200 {object} dto.ProductListResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Router /products [get]
 func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
@@ -77,6 +110,18 @@ func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
+// UpdateProduct godoc
+// @Summary Update a product
+// @Description Update an existing product's information
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Param product body dto.ProductRequest true "Product information"
+// @Success 200 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Router /products/{id} [put]
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := uuid.Parse(idStr)
@@ -101,6 +146,17 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
+// DeleteProduct godoc
+// @Summary Delete a product
+// @Description Delete a product by ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Router /products/{id} [delete]
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := uuid.Parse(idStr)

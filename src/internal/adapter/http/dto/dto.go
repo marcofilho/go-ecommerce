@@ -62,3 +62,18 @@ type OrderResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+// Concrete paginated responses for Swagger
+type ProductListResponse struct {
+	Data     []ProductResponse `json:"data"`
+	Total    int               `json:"total"`
+	Page     int               `json:"page"`
+	PageSize int               `json:"page_size"`
+}
+
+type OrderListResponse struct {
+	Data     []OrderResponse `json:"data"`
+	Total    int             `json:"total"`
+	Page     int             `json:"page"`
+	PageSize int             `json:"page_size"`
+}
