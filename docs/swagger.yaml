@@ -1,21 +1,21 @@
 basePath: /api
 definitions:
-  dto.CreateOrderRequest:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest:
     properties:
       customer_id:
         example: 123
         type: integer
       products:
         items:
-          $ref: '#/definitions/dto.OrderItemRequest'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest'
         type: array
     type: object
-  dto.ErrorResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  dto.OrderItemRequest:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest:
     properties:
       product_id:
         example: 550e8400-e29b-41d4-a716-446655440000
@@ -24,7 +24,7 @@ definitions:
         example: 2
         type: integer
     type: object
-  dto.OrderItemResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse:
     properties:
       product_id:
         type: string
@@ -33,11 +33,11 @@ definitions:
       subtotal:
         type: number
     type: object
-  dto.OrderListResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/dto.OrderResponse'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse'
         type: array
       page:
         type: integer
@@ -46,7 +46,7 @@ definitions:
       total:
         type: integer
     type: object
-  dto.OrderResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse:
     properties:
       created_at:
         type: string
@@ -58,7 +58,7 @@ definitions:
         type: string
       products:
         items:
-          $ref: '#/definitions/dto.OrderItemResponse'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse'
         type: array
       status:
         type: string
@@ -67,11 +67,11 @@ definitions:
       updated_at:
         type: string
     type: object
-  dto.ProductListResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/dto.ProductResponse'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse'
         type: array
       page:
         type: integer
@@ -80,7 +80,7 @@ definitions:
       total:
         type: integer
     type: object
-  dto.ProductRequest:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest:
     properties:
       description:
         example: High-performance laptop
@@ -95,7 +95,7 @@ definitions:
         example: 50
         type: integer
     type: object
-  dto.ProductResponse:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse:
     properties:
       created_at:
         type: string
@@ -112,18 +112,73 @@ definitions:
       updated_at:
         type: string
     type: object
-  dto.UpdateOrderStatusRequest:
+  github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest:
     properties:
       status:
         example: completed
         type: string
     type: object
+  github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus:
+    enum:
+    - unpaid
+    - paid
+    - failed
+    type: string
+    x-enum-varnames:
+    - Unpaid
+    - Paid
+    - Failed
+  github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest:
+    properties:
+      order_id:
+        type: string
+      payment_status:
+        $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus'
+      transaction_id:
+        type: string
+    type: object
+  github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      nextRetryAt:
+        type: string
+      orderID:
+        type: string
+      paymentStatus:
+        $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus'
+      processedAt:
+        type: string
+      rawPayload:
+        type: string
+      retryCount:
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus'
+      transactionID:
+        type: string
+    type: object
+  github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus:
+    enum:
+    - pending
+    - processing
+    - completed
+    - failed
+    type: string
+    x-enum-varnames:
+    - WebhookStatusPending
+    - WebhookStatusProcessing
+    - WebhookStatusCompleted
+    - WebhookStatusFailed
 host: localhost:8080
 info:
   contact:
     email: marco@example.com
     name: API Support
   description: RESTful API for managing products and orders in an e-commerce system
+    with payment webhook integration
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -161,11 +216,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.OrderListResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: List all orders
       tags:
       - orders
@@ -179,18 +234,18 @@ paths:
         name: order
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateOrderRequest'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.OrderResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Create a new order
       tags:
       - orders
@@ -211,18 +266,53 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.OrderResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Get an order by ID
       tags:
       - orders
+  /orders/{id}/payment-history:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all payment webhook events for a specific order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get payment webhook history
+      tags:
+      - payments
   /orders/{id}/status:
     put:
       consumes:
@@ -239,25 +329,67 @@ paths:
         name: status
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateOrderStatusRequest'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.OrderResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Update order status
       tags:
       - orders
+  /payment-webhook:
+    post:
+      consumes:
+      - application/json
+      description: Receives payment status updates from payment processor with HMAC
+        signature verification
+      parameters:
+      - description: HMAC-SHA256 signature of the request body
+        in: header
+        name: X-Webhook-Signature
+        required: true
+        type: string
+      - description: Payment webhook data
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Process payment webhook
+      tags:
+      - payments
   /products:
     get:
       consumes:
@@ -285,11 +417,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.ProductListResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: List all products
       tags:
       - products
@@ -303,18 +435,18 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/dto.ProductRequest'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.ProductResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Create a new product
       tags:
       - products
@@ -337,11 +469,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Delete a product
       tags:
       - products
@@ -361,15 +493,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.ProductResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Get a product by ID
       tags:
       - products
@@ -388,22 +520,22 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/dto.ProductRequest'
+          $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.ProductResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse'
       summary: Update a product
       tags:
       - products

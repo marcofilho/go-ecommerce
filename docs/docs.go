@@ -68,13 +68,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.OrderListResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -98,7 +98,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateOrderRequest"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest"
                         }
                     }
                 ],
@@ -106,13 +106,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.OrderResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -144,19 +144,72 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.OrderResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/payment-history": {
+            "get": {
+                "description": "Retrieves all payment webhook events for a specific order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Get payment webhook history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -189,7 +242,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateOrderStatusRequest"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest"
                         }
                     }
                 ],
@@ -197,19 +250,81 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.OrderResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment-webhook": {
+            "post": {
+                "description": "Receives payment status updates from payment processor with HMAC signature verification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Process payment webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "HMAC-SHA256 signature of the request body",
+                        "name": "X-Webhook-Signature",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Payment webhook data",
+                        "name": "webhook",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -255,13 +370,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductListResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -285,7 +400,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductRequest"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest"
                         }
                     }
                 ],
@@ -293,13 +408,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -331,19 +446,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -374,7 +489,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductRequest"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest"
                         }
                     }
                 ],
@@ -382,19 +497,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.ProductResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -427,13 +542,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
                         }
                     }
                 }
@@ -441,7 +556,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CreateOrderRequest": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest": {
             "type": "object",
             "properties": {
                 "customer_id": {
@@ -451,12 +566,12 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.OrderItemRequest"
+                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest"
                     }
                 }
             }
         },
-        "dto.ErrorResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -464,7 +579,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.OrderItemRequest": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest": {
             "type": "object",
             "properties": {
                 "product_id": {
@@ -477,7 +592,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.OrderItemResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse": {
             "type": "object",
             "properties": {
                 "product_id": {
@@ -491,13 +606,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.OrderListResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.OrderResponse"
+                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
                     }
                 },
                 "page": {
@@ -511,7 +626,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.OrderResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -529,7 +644,7 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.OrderItemResponse"
+                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse"
                     }
                 },
                 "status": {
@@ -543,13 +658,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ProductListResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.ProductResponse"
+                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
                     }
                 },
                 "page": {
@@ -563,7 +678,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ProductRequest": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -584,7 +699,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ProductResponse": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -610,7 +725,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateOrderStatusRequest": {
+        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
                 "status": {
@@ -618,6 +733,83 @@ const docTemplate = `{
                     "example": "completed"
                 }
             }
+        },
+        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus": {
+            "type": "string",
+            "enum": [
+                "unpaid",
+                "paid",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "Unpaid",
+                "Paid",
+                "Failed"
+            ]
+        },
+        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus"
+                },
+                "transaction_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nextRetryAt": {
+                    "type": "string"
+                },
+                "orderID": {
+                    "type": "string"
+                },
+                "paymentStatus": {
+                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus"
+                },
+                "processedAt": {
+                    "type": "string"
+                },
+                "rawPayload": {
+                    "type": "string"
+                },
+                "retryCount": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus"
+                },
+                "transactionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "processing",
+                "completed",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "WebhookStatusPending",
+                "WebhookStatusProcessing",
+                "WebhookStatusCompleted",
+                "WebhookStatusFailed"
+            ]
         }
     }
 }`
@@ -629,7 +821,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
 	Title:            "Go E-Commerce API",
-	Description:      "RESTful API for managing products and orders in an e-commerce system",
+	Description:      "RESTful API for managing products and orders in an e-commerce system with payment webhook integration",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
