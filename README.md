@@ -87,6 +87,27 @@ curl -X POST http://localhost:8080/api/orders \
 - `GET /api/orders/{id}` - Get order
 - `PUT /api/orders/{id}/status` - Update order status
 
+## Testing
+
+Run all unit tests:
+
+```bash
+# Run all tests
+make test
+
+# Run tests with coverage
+go test ./... -cover
+
+# Run tests with verbose output
+go test ./... -v
+```
+
+**Test Coverage:**
+
+- Domain entities: 79.3% coverage
+- DTO mappers: 100.0% coverage
+- Total: 45+ test cases covering business logic and data transformation
+
 ## Architecture
 
 ```
