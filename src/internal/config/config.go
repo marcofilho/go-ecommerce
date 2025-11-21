@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
+	Webhook  WebhookConfig
 }
 
 type DatabaseConfig struct {
@@ -23,6 +24,10 @@ type ServerConfig struct {
 	Port string
 }
 
+type WebhookConfig struct {
+	Secret string
+}
+
 func Load() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -35,6 +40,9 @@ func Load() *Config {
 		},
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
+		},
+		Webhook: WebhookConfig{
+			Secret: getEnv("WEBHOOK_SECRET", "your-webhook-secret-key"),
 		},
 	}
 }
