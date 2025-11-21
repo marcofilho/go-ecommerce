@@ -26,7 +26,7 @@ func (r *OrderRepositoryPostgres) Create(ctx context.Context, order *entity.Orde
 
 func (r *OrderRepositoryPostgres) GetByID(ctx context.Context, id uuid.UUID) (*entity.Order, error) {
 	var order entity.Order
-	err := r.db.WithContext(ctx).Preload("Items").First(&order, "id = ?", id).Error
+	err := r.db.WithContext(ctx).Preload("Products").First(&order, "id = ?", id).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,7 +59,7 @@ func (r *OrderRepositoryPostgres) GetAll(ctx context.Context, page, pageSize int
 
 	// Apply pagination and preload items
 	offset := (page - 1) * pageSize
-	err := query.Preload("Items").Offset(offset).Limit(pageSize).Find(&orders).Error
+	err := query.Preload("Products").Offset(offset).Limit(pageSize).Find(&orders).Error
 
 	if err != nil {
 		return nil, 0, err
