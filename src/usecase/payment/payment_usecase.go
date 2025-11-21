@@ -43,7 +43,6 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 		}
 	}
 
-	// Validate and parse order_id
 	orderID, err := uuid.Parse(req.OrderID)
 	if err != nil {
 		return errors.New("invalid order_id format")
