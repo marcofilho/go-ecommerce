@@ -10,16 +10,13 @@ import (
 func main() {
 	log.Println("Running database migrations...")
 
-	// Load configuration
 	cfg := config.Load()
 
-	// Connect to database
 	db, err := database.Connect(&cfg.Database)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Run migrations
 	if err := database.Migrate(db); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
