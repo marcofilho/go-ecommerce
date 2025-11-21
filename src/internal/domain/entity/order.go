@@ -27,7 +27,7 @@ const (
 type Order struct {
 	ID            uuid.UUID     `gorm:"type:uuid;primaryKey"`
 	CustomerID    int           `gorm:"not null"`
-	Items         []OrderItem   `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE"`
+	Products      []OrderItem   `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE"`
 	TotalPrice    float64       `gorm:"type:decimal(10,2);not null"`
 	Status        OrderStatus   `gorm:"type:varchar(20);not null;default:'pending'"`
 	PaymentStatus PaymentStatus `gorm:"type:varchar(20);not null;default:'unpaid'"`
@@ -46,11 +46,11 @@ func (o *Order) Validate() error {
 	if o.CustomerID <= 0 {
 		return errors.New("customer ID is required")
 	}
-	if len(o.Items) == 0 {
+	if len(o.Products) == 0 {
 		return errors.New("Order must have at least one product")
 	}
-	for _, item := range o.Items {
-		if err := item.Validate(); err != nil {
+	for _, product := range o.Products {
+		if err := product.Validate(); err != nil {
 			return err
 		}
 	}
@@ -59,7 +59,7 @@ func (o *Order) Validate() error {
 
 func (o *Order) CalculateTotal() {
 	total := 0.0
-	for _, item := range o.Items {
+	for _, item := range o.Products {
 		total += item.Subtotal()
 	}
 
@@ -67,7 +67,6 @@ func (o *Order) CalculateTotal() {
 }
 
 func (o *Order) CanTransitionTo(newStatus OrderStatus) error {
-	// Only allow: pending -> completed or pending -> canceled
 	if o.Status == Pending {
 		if newStatus == Completed || newStatus == Cancelled {
 			return nil

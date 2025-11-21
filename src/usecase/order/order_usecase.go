@@ -72,7 +72,7 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 	order := &entity.Order{
 		ID:            uuid.New(),
 		CustomerID:    customerID,
-		Items:         orderItems,
+		Products:      orderItems,
 		Status:        entity.Pending,
 		PaymentStatus: entity.Unpaid,
 		CreatedAt:     time.Now(),

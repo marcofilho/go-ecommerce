@@ -44,14 +44,13 @@ type UpdateOrderStatusRequest struct {
 type OrderItemResponse struct {
 	ProductID string  `json:"product_id"`
 	Quantity  int     `json:"quantity"`
-	Price     float64 `json:"price"`
 	Subtotal  float64 `json:"subtotal"`
 }
 
 type OrderResponse struct {
 	ID            string              `json:"id"`
 	CustomerID    int                 `json:"customer_id"`
-	Items         []OrderItemResponse `json:"items"`
+	Products      []OrderItemResponse `json:"products"`
 	TotalPrice    float64             `json:"total_price"`
 	Status        string              `json:"status"`
 	PaymentStatus string              `json:"payment_status"`
@@ -63,7 +62,6 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// Concrete paginated responses for Swagger
 type ProductListResponse struct {
 	Data     []ProductResponse `json:"data"`
 	Total    int               `json:"total"`

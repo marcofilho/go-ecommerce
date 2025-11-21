@@ -33,20 +33,19 @@ func ToProductListResponse(products []*entity.Product, total, page, pageSize int
 
 // Order Mappers
 func ToOrderResponse(order *entity.Order) OrderResponse {
-	items := make([]OrderItemResponse, 0, len(order.Items))
-	for _, item := range order.Items {
-		items = append(items, OrderItemResponse{
-			ProductID: item.ProductID.String(),
-			Quantity:  item.Quantity,
-			Price:     item.Price,
-			Subtotal:  item.Subtotal(),
+	products := make([]OrderItemResponse, 0, len(order.Products))
+	for _, product := range order.Products {
+		products = append(products, OrderItemResponse{
+			ProductID: product.ProductID.String(),
+			Quantity:  product.Quantity,
+			Subtotal:  product.Subtotal(),
 		})
 	}
 
 	return OrderResponse{
 		ID:            order.ID.String(),
 		CustomerID:    order.CustomerID,
-		Items:         items,
+		Products:      products,
 		TotalPrice:    order.TotalPrice,
 		Status:        string(order.Status),
 		PaymentStatus: string(order.PaymentStatus),
