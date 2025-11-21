@@ -84,14 +84,19 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Items per page" default(10)
-// @Param in_stock_only query bool false "Filter products in stock only"
+// @Param in_stock_only query bool false "Filter products in stock only" default(true)
 // @Success 200 {object} dto.ProductListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Router /products [get]
 func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
-	inStockOnly := r.URL.Query().Get("in_stock_only") == "true"
+
+	inStockOnlyParam := r.URL.Query().Get("in_stock_only")
+	inStockOnly := true
+	if inStockOnlyParam == "false" {
+		inStockOnly = false
+	}
 
 	if page < 1 {
 		page = 1

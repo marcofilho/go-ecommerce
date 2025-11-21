@@ -80,7 +80,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new order with the provided items",
+                "description": "Create a new order with the provided products",
                 "consumes": [
                     "application/json"
                 ],
@@ -245,6 +245,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
+                        "default": true,
                         "description": "Filter products in stock only",
                         "name": "in_stock_only",
                         "in": "query"

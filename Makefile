@@ -17,6 +17,10 @@ docker-up:
 	@echo "Starting all services..."
 	@docker-compose up -d
 	@echo "Services started! API: http://localhost:8080"
+	@echo "Waiting for API to be ready..."
+	@sleep 5
+	@echo "Opening Swagger UI..."
+	@open http://localhost:8080/swagger/index.html || xdg-open http://localhost:8080/swagger/index.html || start http://localhost:8080/swagger/index.html
 
 # Stop all services
 docker-down:

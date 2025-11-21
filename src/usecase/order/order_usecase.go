@@ -29,11 +29,11 @@ func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.Pro
 
 func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem) (*entity.Order, error) {
 	if customerID <= 0 {
-		return nil, errors.New("invalid customer ID")
+		return nil, errors.New("Invalid customer ID")
 	}
 
 	if len(items) == 0 {
-		return nil, errors.New("order must have at least one item")
+		return nil, errors.New("Order must have at least one item")
 	}
 
 	// Fetch products and validate stock
@@ -41,11 +41,11 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 	for _, item := range items {
 		product, err := uc.productRepo.GetByID(ctx, item.ProductID)
 		if err != nil {
-			return nil, errors.New("product not found: " + item.ProductID.String())
+			return nil, errors.New("Product not found: " + item.ProductID.String())
 		}
 
 		if !product.IsAvailable(item.Quantity) {
-			return nil, errors.New("insufficient stock for product: " + product.Name)
+			return nil, errors.New("Insufficient stock for product: " + product.Name)
 		}
 
 		orderItem := entity.OrderItem{
@@ -60,7 +60,6 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 
 		orderItems = append(orderItems, orderItem)
 
-		// Decrease stock
 		if err := product.DecreaseStock(item.Quantity); err != nil {
 			return nil, err
 		}
@@ -70,7 +69,6 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 		}
 	}
 
-	// Create order
 	order := &entity.Order{
 		ID:            uuid.New(),
 		CustomerID:    customerID,

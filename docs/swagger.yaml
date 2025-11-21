@@ -166,7 +166,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new order with the provided items
+      description: Create a new order with the provided products
       parameters:
       - description: Order information
         in: body
@@ -268,7 +268,8 @@ paths:
         in: query
         name: page_size
         type: integer
-      - description: Filter products in stock only
+      - default: true
+        description: Filter products in stock only
         in: query
         name: in_stock_only
         type: boolean
