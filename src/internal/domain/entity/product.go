@@ -5,16 +5,24 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Product struct {
-	ID          uuid.UUID
-	Name        string
-	Description string
-	Price       float64
-	Quantity    int
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name        string    `gorm:"size:255;not null"`
+	Description string    `gorm:"type:text"`
+	Price       float64   `gorm:"type:decimal(10,2);not null"`
+	Quantity    int       `gorm:"not null"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func (p *Product) BeforeCreate(tx *gorm.DB) error {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
+	return nil
 }
 
 func (p *Product) Validate() error {

@@ -1,7 +1,7 @@
 package product
 
 import (
-	"errors"
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,8 +19,9 @@ func NewUseCase(repo repository.ProductRepository) *UseCase {
 	}
 }
 
-func (uc *UseCase) CreateProduct(name, description string, price float64, quantity int) (*entity.Product, error) {
+func (uc *UseCase) CreateProduct(ctx context.Context, name, description string, price float64, quantity int) (*entity.Product, error) {
 	product := &entity.Product{
+		ID:          uuid.New(),
 		Name:        name,
 		Description: description,
 		Price:       price,
@@ -33,26 +34,30 @@ func (uc *UseCase) CreateProduct(name, description string, price float64, quanti
 		return nil, err
 	}
 
-	if err := uc.repo.Create(product); err != nil {
+	if err := uc.repo.Create(ctx, product); err != nil {
 		return nil, err
 	}
 
 	return product, nil
 }
 
-func (uc *UseCase) GetProduct(id uuid.UUID) (*entity.Product, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("Product ID is required")
+func (uc *UseCase) GetProduct(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+	return uc.repo.GetByID(ctx, id)
+}
+
+func (uc *UseCase) ListProducts(ctx context.Context, page, pageSize int, inStockOnly bool) ([]*entity.Product, int, error) {
+	if page < 1 {
+		page = 1
 	}
-	return uc.repo.GetByID(id)
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+
+	return uc.repo.GetAll(ctx, page, pageSize, inStockOnly)
 }
 
-func (uc *UseCase) ListProducts() ([]*entity.Product, error) {
-	return uc.repo.GetAll()
-}
-
-func (uc *UseCase) UpdateProduct(id uuid.UUID, name, description string, price float64, quantity int) (*entity.Product, error) {
-	product, err := uc.repo.GetByID(id)
+func (uc *UseCase) UpdateProduct(ctx context.Context, id uuid.UUID, name, description string, price float64, quantity int) (*entity.Product, error) {
+	product, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -67,34 +72,13 @@ func (uc *UseCase) UpdateProduct(id uuid.UUID, name, description string, price f
 		return nil, err
 	}
 
-	if err := uc.repo.Update(product); err != nil {
+	if err := uc.repo.Update(ctx, product); err != nil {
 		return nil, err
 	}
 
 	return product, nil
 }
 
-func (uc *UseCase) DeleteProduct(id uuid.UUID) error {
-	if id == uuid.Nil {
-		return errors.New("Product ID is required")
-	}
-
-	return uc.repo.Delete(id)
-}
-
-func (uc *UseCase) UpdateStock(id uuid.UUID, quantity int) error {
-	product, err := uc.repo.GetByID(id)
-	if err != nil {
-		return err
-	}
-
-	if quantity >= 0 {
-		if err := product.IncreaseStock(quantity - product.Quantity); err != nil {
-			return err
-		}
-	} else {
-		return errors.New("Stock quantity cannot be negative")
-	}
-
-	return uc.repo.Update(product)
+func (uc *UseCase) DeleteProduct(ctx context.Context, id uuid.UUID) error {
+	return uc.repo.Delete(ctx, id)
 }
