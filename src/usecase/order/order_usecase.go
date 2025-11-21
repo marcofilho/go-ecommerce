@@ -36,7 +36,6 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 		return nil, errors.New("Order must have at least one item")
 	}
 
-	// Fetch products and validate stock
 	var orderItems []entity.OrderItem
 	for _, item := range items {
 		product, err := uc.productRepo.GetByID(ctx, item.ProductID)
