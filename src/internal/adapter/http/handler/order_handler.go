@@ -38,21 +38,21 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var items []order.CreateOrderItem
-	for _, item := range req.Products {
-		productID, err := uuid.Parse(item.ProductID)
+	var products []order.CreateOrderItem
+	for _, product := range req.Products {
+		productID, err := uuid.Parse(product.ProductID)
 		if err != nil {
 			respondError(w, http.StatusBadRequest, "Invalid product ID")
 			return
 		}
 
-		items = append(items, order.CreateOrderItem{
+		products = append(products, order.CreateOrderItem{
 			ProductID: productID,
-			Quantity:  item.Quantity,
+			Quantity:  product.Quantity,
 		})
 	}
 
-	createdOrder, err := h.useCase.CreateOrder(r.Context(), req.CustomerID, items)
+	createdOrder, err := h.useCase.CreateOrder(r.Context(), req.CustomerID, products)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return

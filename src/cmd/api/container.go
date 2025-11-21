@@ -3,7 +3,7 @@ package main
 import (
 	"gorm.io/gorm"
 
-	handler "github.com/marcofilho/go-ecommerce/src/internal/adapter/http"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/handler"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 	infraRepo "github.com/marcofilho/go-ecommerce/src/internal/infrastructure/repository"
 	orderUseCase "github.com/marcofilho/go-ecommerce/src/usecase/order"
