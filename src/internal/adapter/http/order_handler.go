@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/usecase/order"
 )
@@ -20,47 +21,8 @@ func NewOrderHandler(useCase *order.UseCase) *OrderHandler {
 	}
 }
 
-type CreateOrderRequest struct {
-	CustomerID int                      `json:"customer_id"`
-	Products   []CreateOrderItemRequest `json:"products"`
-}
-
-type CreateOrderItemRequest struct {
-	ProductID string `json:"product_id"`
-	Quantity  int    `json:"quantity"`
-}
-
-type UpdateOrderStatusRequest struct {
-	Status string `json:"status"`
-}
-
-type OrderItemResponse struct {
-	ProductID string  `json:"product_id"`
-	Quantity  int     `json:"quantity"`
-	Price     float64 `json:"price"`
-	Subtotal  float64 `json:"subtotal"`
-}
-
-type OrderResponse struct {
-	ID            string              `json:"id"`
-	CustomerID    int                 `json:"customer_id"`
-	Items         []OrderItemResponse `json:"items"`
-	TotalPrice    float64             `json:"total_price"`
-	Status        string              `json:"status"`
-	PaymentStatus string              `json:"payment_status"`
-	CreatedAt     string              `json:"created_at"`
-	UpdatedAt     string              `json:"updated_at"`
-}
-
-type OrderListResponse struct {
-	Orders   []OrderResponse `json:"orders"`
-	Total    int             `json:"total"`
-	Page     int             `json:"page"`
-	PageSize int             `json:"page_size"`
-}
-
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-	var req CreateOrderRequest
+	var req dto.CreateOrderRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -86,7 +48,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := orderToResponse(createdOrder)
+	response := dto.ToOrderResponse(createdOrder)
 	respondJSON(w, http.StatusCreated, response)
 }
 
@@ -104,7 +66,7 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := orderToResponse(order)
+	response := dto.ToOrderResponse(order)
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -139,18 +101,7 @@ func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var orderResponses []OrderResponse
-	for _, ord := range orders {
-		orderResponses = append(orderResponses, orderToResponse(ord))
-	}
-
-	response := OrderListResponse{
-		Orders:   orderResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	}
-
+	response := dto.ToOrderListResponse(orders, total, page, pageSize)
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -162,7 +113,7 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var req UpdateOrderStatusRequest
+	var req dto.UpdateOrderStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -175,29 +126,6 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response := orderToResponse(order)
+	response := dto.ToOrderResponse(order)
 	respondJSON(w, http.StatusOK, response)
-}
-
-func orderToResponse(ord *entity.Order) OrderResponse {
-	var items []OrderItemResponse
-	for _, item := range ord.Items {
-		items = append(items, OrderItemResponse{
-			ProductID: item.ProductID.String(),
-			Quantity:  item.Quantity,
-			Price:     item.Price,
-			Subtotal:  item.Subtotal(),
-		})
-	}
-
-	return OrderResponse{
-		ID:            ord.ID.String(),
-		CustomerID:    ord.CustomerID,
-		Items:         items,
-		TotalPrice:    ord.TotalPrice,
-		Status:        string(ord.Status),
-		PaymentStatus: string(ord.PaymentStatus),
-		CreatedAt:     ord.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     ord.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
 }

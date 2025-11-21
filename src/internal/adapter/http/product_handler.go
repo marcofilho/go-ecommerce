@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 	"github.com/marcofilho/go-ecommerce/src/usecase/product"
 )
 
@@ -19,39 +20,8 @@ func NewProductHandler(useCase *product.UseCase) *ProductHandler {
 	}
 }
 
-type CreateProductRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Quantity    int     `json:"quantity"`
-}
-
-type UpdateProductRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Quantity    int     `json:"quantity"`
-}
-
-type ProductResponse struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Quantity    int     `json:"quantity"`
-	CreatedAt   string  `json:"created_at"`
-	UpdatedAt   string  `json:"updated_at"`
-}
-
-type ProductListResponse struct {
-	Products []ProductResponse `json:"products"`
-	Total    int               `json:"total"`
-	Page     int               `json:"page"`
-	PageSize int               `json:"page_size"`
-}
-
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var req CreateProductRequest
+	var req dto.ProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -63,16 +33,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := ProductResponse{
-		ID:          product.ID.String(),
-		Name:        product.Name,
-		Description: product.Description,
-		Price:       product.Price,
-		Quantity:    product.Quantity,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
-
+	response := dto.ToProductResponse(product)
 	respondJSON(w, http.StatusCreated, response)
 }
 
@@ -90,16 +51,7 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := ProductResponse{
-		ID:          product.ID.String(),
-		Name:        product.Name,
-		Description: product.Description,
-		Price:       product.Price,
-		Quantity:    product.Quantity,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
-
+	response := dto.ToProductResponse(product)
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -121,26 +73,7 @@ func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var productResponses []ProductResponse
-	for _, product := range products {
-		productResponses = append(productResponses, ProductResponse{
-			ID:          product.ID.String(),
-			Name:        product.Name,
-			Description: product.Description,
-			Price:       product.Price,
-			Quantity:    product.Quantity,
-			CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-		})
-	}
-
-	response := ProductListResponse{
-		Products: productResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	}
-
+	response := dto.ToProductListResponse(products, total, page, pageSize)
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -152,7 +85,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UpdateProductRequest
+	var req dto.ProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -164,16 +97,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := ProductResponse{
-		ID:          product.ID.String(),
-		Name:        product.Name,
-		Description: product.Description,
-		Price:       product.Price,
-		Quantity:    product.Quantity,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
-
+	response := dto.ToProductResponse(product)
 	respondJSON(w, http.StatusOK, response)
 }
 

@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 )
 
 func respondJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -12,5 +14,5 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
+	respondJSON(w, status, dto.ErrorResponse{Error: message})
 }
