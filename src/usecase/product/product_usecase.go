@@ -30,7 +30,7 @@ func (uc *UseCase) CreateProduct(ctx context.Context, name, description string, 
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := product.Validate(); err != nil {
+	if err := product.ValidateForCreation(); err != nil {
 		return nil, err
 	}
 

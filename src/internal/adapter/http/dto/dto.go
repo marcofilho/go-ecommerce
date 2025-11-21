@@ -10,10 +10,10 @@ type PaginatedResponse[T any] struct {
 
 // Product DTOs
 type ProductRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Quantity    int     `json:"quantity"`
+	Name        string  `json:"name" example:"Laptop"`
+	Description string  `json:"description" example:"High-performance laptop"`
+	Price       float64 `json:"price" example:"999.99"`
+	Quantity    int     `json:"quantity" example:"50"`
 }
 
 type ProductResponse struct {
@@ -28,17 +28,17 @@ type ProductResponse struct {
 
 // Order DTOs
 type CreateOrderRequest struct {
-	CustomerID int                `json:"customer_id"`
+	CustomerID int                `json:"customer_id" example:"123"`
 	Products   []OrderItemRequest `json:"products"`
 }
 
 type OrderItemRequest struct {
-	ProductID string `json:"product_id"`
-	Quantity  int    `json:"quantity"`
+	ProductID string `json:"product_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Quantity  int    `json:"quantity" example:"2"`
 }
 
 type UpdateOrderStatusRequest struct {
-	Status string `json:"status"`
+	Status string `json:"status" example:"completed"`
 }
 
 type OrderItemResponse struct {

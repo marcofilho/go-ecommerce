@@ -3,6 +3,7 @@ definitions:
   dto.CreateOrderRequest:
     properties:
       customer_id:
+        example: 123
         type: integer
       products:
         items:
@@ -17,14 +18,14 @@ definitions:
   dto.OrderItemRequest:
     properties:
       product_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       quantity:
+        example: 2
         type: integer
     type: object
   dto.OrderItemResponse:
     properties:
-      price:
-        type: number
       product_id:
         type: string
       quantity:
@@ -53,12 +54,12 @@ definitions:
         type: integer
       id:
         type: string
-      items:
+      payment_status:
+        type: string
+      products:
         items:
           $ref: '#/definitions/dto.OrderItemResponse'
         type: array
-      payment_status:
-        type: string
       status:
         type: string
       total_price:
@@ -82,12 +83,16 @@ definitions:
   dto.ProductRequest:
     properties:
       description:
+        example: High-performance laptop
         type: string
       name:
+        example: Laptop
         type: string
       price:
+        example: 999.99
         type: number
       quantity:
+        example: 50
         type: integer
     type: object
   dto.ProductResponse:
@@ -110,6 +115,7 @@ definitions:
   dto.UpdateOrderStatusRequest:
     properties:
       status:
+        example: completed
         type: string
     type: object
 host: localhost:8080

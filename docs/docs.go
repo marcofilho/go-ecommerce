@@ -445,7 +445,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customer_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 123
                 },
                 "products": {
                     "type": "array",
@@ -467,19 +468,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "product_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "quantity": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 2
                 }
             }
         },
         "dto.OrderItemResponse": {
             "type": "object",
             "properties": {
-                "price": {
-                    "type": "number"
-                },
                 "product_id": {
                     "type": "string"
                 },
@@ -523,14 +523,14 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "items": {
+                "payment_status": {
+                    "type": "string"
+                },
+                "products": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.OrderItemResponse"
                     }
-                },
-                "payment_status": {
-                    "type": "string"
                 },
                 "status": {
                     "type": "string"
@@ -567,16 +567,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "High-performance laptop"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Laptop"
                 },
                 "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 999.99
                 },
                 "quantity": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 50
                 }
             }
         },
@@ -610,7 +614,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "completed"
                 }
             }
         }

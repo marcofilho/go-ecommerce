@@ -32,10 +32,20 @@ func (p *Product) Validate() error {
 	if p.Price < 0 {
 		return errors.New("Product price cannot be negative")
 	}
-	if p.Quantity <= 0 {
-		return errors.New("Product quantity must be greater than 0")
+	if p.Quantity < 0 {
+		return errors.New("Product quantity cannot be negative")
 	}
 
+	return nil
+}
+
+func (p *Product) ValidateForCreation() error {
+	if err := p.Validate(); err != nil {
+		return err
+	}
+	if p.Quantity == 0 {
+		return errors.New("Product quantity must be greater than 0 for new products")
+	}
 	return nil
 }
 
