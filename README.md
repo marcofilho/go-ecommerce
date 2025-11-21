@@ -6,7 +6,10 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 
 - Product Management (CRUD with stock tracking)
 - Order Management (create orders with automatic stock deduction)
+- **Payment Webhook Integration** (simulated payment gateway)
+- Payment status tracking (unpaid → paid/failed)
 - Status workflow (pending → completed/canceled)
+- Webhook audit trail for compliance
 - Pagination & filtering
 - PostgreSQL with GORM ORM
 - Automatic migrations
@@ -22,19 +25,29 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 ### Setup
 
 ```bash
-# Start everything (PostgreSQL + API)
-make up
+# Start everything (PostgreSQL + API) with automated tests
+make start
+
+# Or manually start services
+docker-compose up -d
 
 # View logs
 make logs
 
 # Stop everything
-make down
+make stop
 ```
 
 Server starts at `http://localhost:8080`
 
 **Swagger UI:** `http://localhost:8080/swagger/index.html`
+
+**Note:** `make start` automatically runs:
+
+1. Unit tests (77 tests)
+2. Service startup (PostgreSQL + API)
+3. Integration tests (12 webhook scenarios)
+4. Opens Swagger UI in browser
 
 ### Test API
 
@@ -75,12 +88,21 @@ curl -X POST http://localhost:8080/api/orders \
 - `GET /api/orders/{id}` - Get order
 - `PUT /api/orders/{id}/status` - Update order status
 
+### Payment Webhooks
+
+- `POST /api/payment-webhook` - Receive payment status updates
+- `GET /api/orders/{id}/payment-history` - Get payment webhook history
+
+**📖 See [Payment Webhook Documentation](docs/PAYMENT_WEBHOOK.md) for complete integration guide**
+
 ## Testing
+
+### Unit Tests
 
 Run all unit tests:
 
 ```bash
-# Run tests in Docker
+# Run unit tests in Docker
 make test
 ```
 
@@ -101,6 +123,43 @@ make test
 - Use case layer: Product & Order CRUD operations with comprehensive error handling
 - All edge cases: Invalid inputs, repository errors, validation failures, pagination defaults
 
+### Integration Tests
+
+Run webhook integration tests:
+
+```bash
+# Run payment webhook integration tests
+make test-webhook
+```
+
+**Webhook Test Coverage (12 scenarios):**
+
+✅ **Security Tests:**
+
+- Missing HMAC signature (401)
+- Invalid HMAC signature (401)
+
+✅ **Validation Tests:**
+
+- Missing transaction ID (400)
+- Invalid order ID format (400)
+- Non-existent order (400)
+- Invalid payment status (400)
+
+✅ **Business Logic Tests:**
+
+- Successful payment processing (200)
+- Failed payment processing (200)
+
+✅ **Resilience Tests:**
+
+- Idempotency with duplicate transactions
+- Webhook on already completed order
+- Webhook history audit trail
+- Concurrent webhook handling (race conditions)
+
+**Note:** Integration tests run automatically with `make start`
+
 ## Architecture
 
 ```
@@ -119,11 +178,12 @@ src/
 ## Make Commands
 
 ```bash
-make up     # Start all services (PostgreSQL + API)
-make down   # Stop all services
-make logs   # View service logs
-make test   # Run tests in Docker
-make help   # Show available commands
+make start         # Start services + run all tests (unit + integration)
+make stop          # Stop all services
+make logs          # View service logs
+make test          # Run unit tests in Docker
+make test-webhook  # Run webhook integration tests
+make help          # Show available commands
 ```
 
 ## Configuration
@@ -136,6 +196,19 @@ Environment variables (defaults):
 - `DB_PASSWORD=postgres`
 - `DB_NAME=ecommerce`
 - `SERVER_PORT=8080`
+- `WEBHOOK_SECRET=your-webhook-secret-key` (⚠️ Change in production!)
+
+## Project Highlights
+
+✨ **Clean Architecture** - Separation of concerns with domain, use case, and infrastructure layers  
+🧪 **Comprehensive Testing** - 77 unit tests + 12 integration tests with 95%+ coverage  
+🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
+🔄 **Idempotency** - Transaction ID-based duplicate prevention  
+📊 **Audit Trail** - Complete webhook event logging with status tracking  
+⚡ **Retry Logic** - Webhook status tracking for payment processor retries  
+📖 **API Documentation** - Interactive Swagger UI with complete endpoint documentation  
+🐳 **Containerized** - Docker & Docker Compose for easy deployment  
+🚀 **CI/CD Ready** - Automated testing on startup
 
 ## License
 

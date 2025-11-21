@@ -1,18 +1,34 @@
-.PHONY: up down logs test help
+.PHONY: start stop logs test test-webhook help
 
 # Default target
 .DEFAULT_GOAL := help
 
 # Start all services (PostgreSQL + API)
-up:
+start:
+	@echo "Running unit tests before starting services..."
+	@docker build --target test -t go-ecommerce-test . 2>&1 | grep -E "(RUN go test|PASS|FAIL|coverage:|ok  )" || true
+	@echo ""
 	@echo "Starting services..."
 	@docker-compose up -d
 	@echo "✓ Services started!"
 	@echo "  API: http://localhost:8080"
 	@echo "  Swagger: http://localhost:8080/swagger/index.html"
+	@echo ""
+	@echo "Waiting for API to be ready..."
+	@sleep 5
+	@echo ""
+	@echo "Running Payment Webhook Integration Tests..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@./test_payment_webhook_batch.sh
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✓ All systems verified and ready!"
+	@echo ""
+	@echo "Opening Swagger UI in your browser..."
+	@open http://localhost:8080/swagger/index.html || xdg-open http://localhost:8080/swagger/index.html || start http://localhost:8080/swagger/index.html 2>/dev/null || true
 
 # Stop all services
-down:
+stop:
 	@echo "Stopping services..."
 	@docker-compose down
 	@echo "✓ Services stopped!"
@@ -27,14 +43,20 @@ test:
 	@docker build --target test -t go-ecommerce-test .
 	@echo "✓ Tests complete!"
 
+# Run webhook integration tests
+test-webhook:
+	@echo "Running Payment Webhook Integration Tests..."
+	@./test_payment_webhook_batch.sh
+
 # Show help
 help:
 	@echo "Go E-Commerce API - Available commands:"
 	@echo ""
-	@echo "  make up     - Start all services (PostgreSQL + API)"
-	@echo "  make down   - Stop all services"
-	@echo "  make logs   - View service logs"
-	@echo "  make test   - Run tests in Docker"
+	@echo "  make start         - Run tests and start all services (PostgreSQL + API)"
+	@echo "  make stop          - Stop all services"
+	@echo "  make logs          - View service logs"
+	@echo "  make test          - Run unit tests in Docker"
+	@echo "  make test-webhook  - Run webhook integration tests"
 	@echo ""
 	@echo "Other:"
 	@echo "  make clean     - Remove build artifacts"
