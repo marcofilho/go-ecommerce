@@ -100,13 +100,26 @@ go test ./... -cover
 
 # Run tests with verbose output
 go test ./... -v
+
+# Generate HTML coverage report
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out -o coverage.html
 ```
 
 **Test Coverage:**
 
-- Domain entities: 79.3% coverage
-- DTO mappers: 100.0% coverage
-- Total: 45+ test cases covering business logic and data transformation
+- **Domain entities: 100.0% coverage** ✅
+- **DTO mappers: 100.0% coverage** ✅
+- **Product use cases: 100.0% coverage** ✅
+- **Order use cases: 95.1% coverage** ✅
+- **Total: 47 passing tests across 5 test files**
+
+**Test Suites:**
+
+- Entity layer: Product & Order business logic validation, GORM hooks
+- DTO layer: Request/Response mapping and pagination
+- Use case layer: Product & Order CRUD operations with comprehensive error handling
+- All edge cases: Invalid inputs, repository errors, validation failures, pagination defaults
 
 ## Architecture
 

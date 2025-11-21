@@ -103,6 +103,26 @@ func TestProduct_ValidateForCreation(t *testing.T) {
 			wantErr: true,
 			errMsg:  "Product quantity must be greater than 0 for new products",
 		},
+		{
+			name: "invalid product - empty name",
+			product: Product{
+				Name:     "",
+				Price:    999.99,
+				Quantity: 10,
+			},
+			wantErr: true,
+			errMsg:  "Product name is required",
+		},
+		{
+			name: "invalid product - negative price",
+			product: Product{
+				Name:     "Laptop",
+				Price:    -10.00,
+				Quantity: 10,
+			},
+			wantErr: true,
+			errMsg:  "Product price cannot be negative",
+		},
 	}
 
 	for _, tt := range tests {

@@ -233,3 +233,120 @@ func TestOrderItem_Subtotal(t *testing.T) {
 		})
 	}
 }
+
+func TestOrder_BeforeCreate(t *testing.T) {
+	t.Run("generates UUID if not set", func(t *testing.T) {
+		order := &Order{}
+		err := order.BeforeCreate(nil)
+		if err != nil {
+			t.Errorf("BeforeCreate() error = %v", err)
+		}
+		if order.ID == uuid.Nil {
+			t.Error("BeforeCreate() did not generate UUID")
+		}
+	})
+
+	t.Run("keeps existing UUID", func(t *testing.T) {
+		existingID := uuid.New()
+		order := &Order{ID: existingID}
+		err := order.BeforeCreate(nil)
+		if err != nil {
+			t.Errorf("BeforeCreate() error = %v", err)
+		}
+		if order.ID != existingID {
+			t.Error("BeforeCreate() changed existing UUID")
+		}
+	})
+}
+
+func TestOrder_Validate(t *testing.T) {
+	validProductID := uuid.New()
+
+	tests := []struct {
+		name    string
+		order   Order
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid order",
+			order: Order{
+				CustomerID: 123,
+				Products: []OrderItem{
+					{
+						ProductID: validProductID,
+						Quantity:  2,
+						Price:     100.00,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid customer ID - zero",
+			order: Order{
+				CustomerID: 0,
+				Products: []OrderItem{
+					{
+						ProductID: validProductID,
+						Quantity:  2,
+						Price:     100.00,
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "customer ID is required",
+		},
+		{
+			name: "invalid customer ID - negative",
+			order: Order{
+				CustomerID: -1,
+				Products: []OrderItem{
+					{
+						ProductID: validProductID,
+						Quantity:  2,
+						Price:     100.00,
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "customer ID is required",
+		},
+		{
+			name: "no products",
+			order: Order{
+				CustomerID: 123,
+				Products:   []OrderItem{},
+			},
+			wantErr: true,
+			errMsg:  "Order must have at least one product",
+		},
+		{
+			name: "invalid product item",
+			order: Order{
+				CustomerID: 123,
+				Products: []OrderItem{
+					{
+						ProductID: uuid.Nil,
+						Quantity:  2,
+						Price:     100.00,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.order.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && tt.errMsg != "" && err.Error() != tt.errMsg {
+				t.Errorf("Validate() error message = %v, want %v", err.Error(), tt.errMsg)
+			}
+		})
+	}
+}
