@@ -74,7 +74,7 @@ func getEnvAsInt(key string, defaultValue int) int {
 	if valueStr == "" {
 		return defaultValue
 	}
-	
+
 	var value int
 	_, err := fmt.Sscanf(valueStr, "%d", &value)
 	if err != nil {

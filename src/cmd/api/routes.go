@@ -24,7 +24,7 @@ func SetupRoutes(c *Container) *http.ServeMux {
 			http.HandlerFunc(c.ProductHandler.CreateProduct),
 		),
 	))
-	mux.HandleFunc("GET /api/products", c.ProductHandler.ListProducts) // Public
+	mux.HandleFunc("GET /api/products", c.ProductHandler.ListProducts)    // Public
 	mux.HandleFunc("GET /api/products/{id}", c.ProductHandler.GetProduct) // Public
 	mux.Handle("PUT /api/products/{id}", c.AuthMiddleware.Authenticate(
 		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
