@@ -9,6 +9,7 @@ type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
 	Webhook  WebhookConfig
+	JWT      JWTConfig
 }
 
 type DatabaseConfig struct {
@@ -28,6 +29,11 @@ type WebhookConfig struct {
 	Secret string
 }
 
+type JWTConfig struct {
+	Secret          string
+	ExpirationHours int
+}
+
 func Load() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -44,6 +50,10 @@ func Load() *Config {
 		Webhook: WebhookConfig{
 			Secret: getEnv("WEBHOOK_SECRET", "your-webhook-secret-key"),
 		},
+		JWT: JWTConfig{
+			Secret:          getEnv("JWT_SECRET", "your-jwt-secret-key-change-in-production"),
+			ExpirationHours: getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
+		},
 	}
 }
 
@@ -57,4 +67,18 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	valueStr := os.Getenv(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+	
+	var value int
+	_, err := fmt.Sscanf(valueStr, "%d", &value)
+	if err != nil {
+		return defaultValue
+	}
+	return value
 }

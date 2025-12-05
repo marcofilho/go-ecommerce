@@ -23,5 +23,6 @@ func Migrate(db *gorm.DB) error {
 		&entity.Order{},
 		&entity.OrderItem{},
 		&entity.WebhookLog{},
+		&entity.User{},
 	)
 }
