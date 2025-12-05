@@ -46,7 +46,7 @@ Server starts at `http://localhost:8080`
 
 **Note:** `make start` automatically runs:
 
-1. Unit tests (95 tests)
+1. Unit tests (105 tests)
 2. Service startup (PostgreSQL + API)
 3. Integration tests (12 webhook scenarios)
 4. Opens Swagger UI in browser

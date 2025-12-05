@@ -11,12 +11,19 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/auth"
 )
 
-type UseCase struct {
-	userRepo    repository.UserRepository
-	jwtProvider *auth.JWTProvider
+// AuthService defines the interface for authentication operations
+type AuthService interface {
+	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error)
+	Login(ctx context.Context, req LoginRequest) (*AuthResponse, error)
+	ValidateToken(tokenString string) (*auth.Claims, error)
 }
 
-func NewUseCase(userRepo repository.UserRepository, jwtProvider *auth.JWTProvider) *UseCase {
+type UseCase struct {
+	userRepo    repository.UserRepository
+	jwtProvider auth.TokenProvider
+}
+
+func NewUseCase(userRepo repository.UserRepository, jwtProvider auth.TokenProvider) *UseCase {
 	return &UseCase{
 		userRepo:    userRepo,
 		jwtProvider: jwtProvider,

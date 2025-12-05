@@ -11,10 +11,10 @@ import (
 )
 
 type ProductHandler struct {
-	useCase *product.UseCase
+	useCase product.ProductService
 }
 
-func NewProductHandler(useCase *product.UseCase) *ProductHandler {
+func NewProductHandler(useCase product.ProductService) *ProductHandler {
 	return &ProductHandler{
 		useCase: useCase,
 	}

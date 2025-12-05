@@ -12,6 +12,12 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 )
 
+// PaymentService defines the interface for payment webhook operations
+type PaymentService interface {
+	ProcessWebhook(ctx context.Context, req *entity.PaymentWebhookRequest) error
+	GetWebhookHistory(ctx context.Context, orderID string) ([]entity.WebhookLog, error)
+}
+
 type PaymentUseCase struct {
 	orderRepo   repository.OrderRepository
 	webhookRepo repository.WebhookRepository

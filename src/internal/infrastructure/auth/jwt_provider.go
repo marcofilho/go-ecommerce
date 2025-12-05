@@ -9,6 +9,12 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 )
 
+// TokenProvider defines the interface for JWT token operations
+type TokenProvider interface {
+	GenerateToken(user *entity.User) (string, error)
+	ValidateToken(tokenString string) (*Claims, error)
+}
+
 type Claims struct {
 	UserID uuid.UUID   `json:"user_id"`
 	Email  string      `json:"email"`

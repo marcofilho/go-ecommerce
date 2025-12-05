@@ -12,10 +12,10 @@ import (
 )
 
 type OrderHandler struct {
-	useCase *order.UseCase
+	useCase order.OrderService
 }
 
-func NewOrderHandler(useCase *order.UseCase) *OrderHandler {
+func NewOrderHandler(useCase order.OrderService) *OrderHandler {
 	return &OrderHandler{
 		useCase: useCase,
 	}

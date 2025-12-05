@@ -14,11 +14,11 @@ import (
 )
 
 type PaymentHandler struct {
-	paymentUC     *payment.PaymentUseCase
+	paymentUC     payment.PaymentService
 	webhookSecret string
 }
 
-func NewPaymentHandler(paymentUC *payment.PaymentUseCase, webhookSecret string) *PaymentHandler {
+func NewPaymentHandler(paymentUC payment.PaymentService, webhookSecret string) *PaymentHandler {
 	return &PaymentHandler{
 		paymentUC:     paymentUC,
 		webhookSecret: webhookSecret,
