@@ -33,8 +33,9 @@ type CreateOrderRequest struct {
 }
 
 type OrderItemRequest struct {
-	ProductID string `json:"product_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Quantity  int    `json:"quantity" example:"2"`
+	ProductID string  `json:"product_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	VariantID *string `json:"variant_id,omitempty" example:"660e8400-e29b-41d4-a716-446655440000"` // Optional: order specific variant
+	Quantity  int     `json:"quantity" example:"2"`
 }
 
 type UpdateOrderStatusRequest struct {

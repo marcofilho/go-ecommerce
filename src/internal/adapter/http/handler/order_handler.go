@@ -46,10 +46,22 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		products = append(products, order.CreateOrderItem{
+		orderItem := order.CreateOrderItem{
 			ProductID: productID,
 			Quantity:  product.Quantity,
-		})
+		}
+
+		// Parse optional variant_id
+		if product.VariantID != nil && *product.VariantID != "" {
+			variantID, err := uuid.Parse(*product.VariantID)
+			if err != nil {
+				respondError(w, http.StatusBadRequest, "Invalid variant ID")
+				return
+			}
+			orderItem.VariantID = &variantID
+		}
+
+		products = append(products, orderItem)
 	}
 
 	createdOrder, err := h.useCase.CreateOrder(r.Context(), req.CustomerID, products)

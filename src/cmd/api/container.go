@@ -68,7 +68,7 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	// Use Cases
 	c.ProductUseCase = productUseCase.NewUseCase(c.ProductRepo)
 	c.ProductVariantUseCase = productVariantUseCase.NewUseCase(c.ProductVariantRepo)
-	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo)
+	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo, c.ProductVariantRepo)
 	c.PaymentUseCase = paymentUseCase.NewPaymentUseCase(c.OrderRepo, c.WebhookRepo)
 	c.AuthUseCase = authUseCase.NewUseCase(c.UserRepo, c.JWTProvider)
 

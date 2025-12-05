@@ -12,6 +12,7 @@ import (
 
 type CreateOrderItem struct {
 	ProductID uuid.UUID
+	VariantID *uuid.UUID // Optional: if ordering a specific variant
 	Quantity  int
 }
 
@@ -26,12 +27,14 @@ type OrderService interface {
 type UseCase struct {
 	orderRepo   repository.OrderRepository
 	productRepo repository.ProductRepository
+	variantRepo repository.ProductVariantRepository
 }
 
-func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) *UseCase {
+func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, variantRepo repository.ProductVariantRepository) *UseCase {
 	return &UseCase{
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
+		variantRepo: variantRepo,
 	}
 }
 
@@ -46,33 +49,82 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 
 	var orderItems []entity.OrderItem
 	for _, item := range items {
-		product, err := uc.productRepo.GetByID(ctx, item.ProductID)
-		if err != nil {
-			return nil, errors.New("Product not found: " + item.ProductID.String())
-		}
+		// Check if ordering a specific variant
+		if item.VariantID != nil {
+			// Order with variant: decrement variant stock
+			variant, err := uc.variantRepo.GetByID(ctx, *item.VariantID)
+			if err != nil {
+				return nil, errors.New("Product variant not found: " + item.VariantID.String())
+			}
 
-		if !product.IsAvailable(item.Quantity) {
-			return nil, errors.New("Insufficient stock for product: " + product.Name)
-		}
+			// Verify variant belongs to the specified product
+			if variant.ProductID != item.ProductID {
+				return nil, errors.New("Variant does not belong to the specified product")
+			}
 
-		orderItem := entity.OrderItem{
-			ProductID: product.ID,
-			Quantity:  item.Quantity,
-			Price:     product.Price,
-		}
+			if !variant.IsAvailable(item.Quantity) {
+				return nil, errors.New("Insufficient stock for product variant")
+			}
 
-		if err := orderItem.Validate(); err != nil {
-			return nil, err
-		}
+			// Get price from variant (uses override or base product price)
+			price, err := variant.GetPrice()
+			if err != nil {
+				return nil, err
+			}
 
-		orderItems = append(orderItems, orderItem)
+			orderItem := entity.OrderItem{
+				ProductID: item.ProductID,
+				VariantID: item.VariantID,
+				Quantity:  item.Quantity,
+				Price:     price,
+			}
 
-		if err := product.DecreaseStock(item.Quantity); err != nil {
-			return nil, err
-		}
+			if err := orderItem.Validate(); err != nil {
+				return nil, err
+			}
 
-		if err := uc.productRepo.Update(ctx, product); err != nil {
-			return nil, err
+			orderItems = append(orderItems, orderItem)
+
+			// Decrease variant stock
+			if err := variant.DecreaseStock(item.Quantity); err != nil {
+				return nil, err
+			}
+
+			if err := uc.variantRepo.Update(ctx, variant); err != nil {
+				return nil, err
+			}
+		} else {
+			// Order without variant: decrement base product stock
+			product, err := uc.productRepo.GetByID(ctx, item.ProductID)
+			if err != nil {
+				return nil, errors.New("Product not found: " + item.ProductID.String())
+			}
+
+			if !product.IsAvailable(item.Quantity) {
+				return nil, errors.New("Insufficient stock for product: " + product.Name)
+			}
+
+			orderItem := entity.OrderItem{
+				ProductID: product.ID,
+				VariantID: nil,
+				Quantity:  item.Quantity,
+				Price:     product.Price,
+			}
+
+			if err := orderItem.Validate(); err != nil {
+				return nil, err
+			}
+
+			orderItems = append(orderItems, orderItem)
+
+			// Decrease base product stock
+			if err := product.DecreaseStock(item.Quantity); err != nil {
+				return nil, err
+			}
+
+			if err := uc.productRepo.Update(ctx, product); err != nil {
+				return nil, err
+			}
 		}
 	}
 

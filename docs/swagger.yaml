@@ -38,6 +38,10 @@ definitions:
       quantity:
         example: 2
         type: integer
+      variant_id:
+        description: 'Optional: order specific variant'
+        example: 660e8400-e29b-41d4-a716-446655440000
+        type: string
     type: object
   dto.OrderItemResponse:
     properties:

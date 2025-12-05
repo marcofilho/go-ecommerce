@@ -7,11 +7,12 @@ import (
 )
 
 type OrderItem struct {
-	ID        uint      `gorm:"primaryKey"`
-	OrderID   uuid.UUID `gorm:"type:uuid;not null"`
-	ProductID uuid.UUID `gorm:"type:uuid;not null"`
-	Quantity  int       `gorm:"not null"`
-	Price     float64   `gorm:"type:decimal(10,2);not null"`
+	ID        uint       `gorm:"primaryKey"`
+	OrderID   uuid.UUID  `gorm:"type:uuid;not null"`
+	ProductID uuid.UUID  `gorm:"type:uuid;not null"`
+	VariantID *uuid.UUID `gorm:"type:uuid"` // Optional: if ordering a specific variant
+	Quantity  int        `gorm:"not null"`
+	Price     float64    `gorm:"type:decimal(10,2);not null"`
 }
 
 func (oi *OrderItem) Validate() error {

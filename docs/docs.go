@@ -988,6 +988,11 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer",
                     "example": 2
+                },
+                "variant_id": {
+                    "description": "Optional: order specific variant",
+                    "type": "string",
+                    "example": "660e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },

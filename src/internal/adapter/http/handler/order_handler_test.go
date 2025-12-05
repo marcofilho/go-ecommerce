@@ -1,27 +1,27 @@
 package handler
 
 import (
-"bytes"
-"context"
-"encoding/json"
-"errors"
-"net/http"
-"net/http/httptest"
-"testing"
-"time"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
 
-"github.com/google/uuid"
-"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
-"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
-"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
-"github.com/marcofilho/go-ecommerce/src/usecase/order"
+	"github.com/google/uuid"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
+	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
+	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	"github.com/marcofilho/go-ecommerce/src/usecase/order"
 )
 
 type mockOrderRepo struct {
-	createFunc func(ctx context.Context, order *entity.Order) error
+	createFunc  func(ctx context.Context, order *entity.Order) error
 	getByIDFunc func(ctx context.Context, id uuid.UUID) (*entity.Order, error)
-	getAllFunc func(ctx context.Context, page, pageSize int, status *entity.OrderStatus, paymentStatus *entity.PaymentStatus) ([]*entity.Order, int, error)
-	updateFunc func(ctx context.Context, order *entity.Order) error
+	getAllFunc  func(ctx context.Context, page, pageSize int, status *entity.OrderStatus, paymentStatus *entity.PaymentStatus) ([]*entity.Order, int, error)
+	updateFunc  func(ctx context.Context, order *entity.Order) error
 }
 
 func (m *mockOrderRepo) Create(ctx context.Context, order *entity.Order) error {
@@ -157,12 +157,12 @@ func TestOrderHandler_GetOrder_Success(t *testing.T) {
 	mockOrderRepo := &mockOrderRepo{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Order, error) {
 			return &entity.Order{
-				ID: id,
-				CustomerID: 123,
-				Status: entity.Pending,
+				ID:            id,
+				CustomerID:    123,
+				Status:        entity.Pending,
 				PaymentStatus: entity.Unpaid,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
 			}, nil
 		},
 	}
@@ -292,11 +292,11 @@ func TestOrderHandler_UpdateOrderStatus_Success(t *testing.T) {
 	mockOrderRepo := &mockOrderRepo{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Order, error) {
 			return &entity.Order{
-				ID: id,
+				ID:         id,
 				CustomerID: 123,
-				Status: entity.Pending,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
+				Status:     entity.Pending,
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
 			}, nil
 		},
 		updateFunc: func(ctx context.Context, order *entity.Order) error {
@@ -357,11 +357,11 @@ func TestOrderHandler_UpdateOrderStatus_UseCaseError(t *testing.T) {
 	mockOrderRepo := &mockOrderRepo{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Order, error) {
 			return &entity.Order{
-				ID: id,
+				ID:         id,
 				CustomerID: 123,
-				Status: entity.Completed,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
+				Status:     entity.Completed,
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
 			}, nil
 		},
 	}
@@ -383,5 +383,34 @@ func TestOrderHandler_UpdateOrderStatus_UseCaseError(t *testing.T) {
 }
 
 func newOrderUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) *order.UseCase {
-	return order.NewUseCase(orderRepo, productRepo)
+	// Create a mock variant repo for testing
+	variantRepo := &mockVariantRepo{}
+	return order.NewUseCase(orderRepo, productRepo, variantRepo)
+}
+
+// Mock variant repository for testing
+type mockVariantRepo struct{}
+
+func (m *mockVariantRepo) Create(ctx context.Context, variant *entity.ProductVariant) error {
+	return nil
+}
+
+func (m *mockVariantRepo) GetByID(ctx context.Context, id uuid.UUID) (*entity.ProductVariant, error) {
+	return nil, errors.New("variant not found")
+}
+
+func (m *mockVariantRepo) GetAll(ctx context.Context, page, pageSize int) ([]*entity.ProductVariant, int, error) {
+	return nil, 0, nil
+}
+
+func (m *mockVariantRepo) GetAllByProductID(ctx context.Context, productID uuid.UUID, page, pageSize int) ([]*entity.ProductVariant, int, error) {
+	return nil, 0, nil
+}
+
+func (m *mockVariantRepo) Update(ctx context.Context, variant *entity.ProductVariant) error {
+	return nil
+}
+
+func (m *mockVariantRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	return nil
 }

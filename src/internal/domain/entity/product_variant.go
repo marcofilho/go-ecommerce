@@ -66,3 +66,29 @@ func (p *ProductVariant) ValidateForCreation() error {
 	}
 	return nil
 }
+
+// IsAvailable checks if the variant has enough stock
+func (pv *ProductVariant) IsAvailable(quantity int) bool {
+	return pv.Quantity >= quantity
+}
+
+// DecreaseStock reduces the variant's quantity
+func (pv *ProductVariant) DecreaseStock(quantity int) error {
+	if quantity <= 0 {
+		return errors.New("Quantity to decrease must be positive")
+	}
+	if !pv.IsAvailable(quantity) {
+		return errors.New("Insufficient variant stock")
+	}
+	pv.Quantity -= quantity
+	return nil
+}
+
+// IncreaseStock adds to the variant's quantity
+func (pv *ProductVariant) IncreaseStock(quantity int) error {
+	if quantity <= 0 {
+		return errors.New("Quantity to increase must be positive")
+	}
+	pv.Quantity += quantity
+	return nil
+}
