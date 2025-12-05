@@ -283,7 +283,7 @@ Environment variables (defaults):
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
 🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
 🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
-🧪 **Comprehensive Testing** - 123 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
+🧪 **Comprehensive Testing** - 150 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  

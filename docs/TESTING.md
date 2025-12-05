@@ -7,12 +7,12 @@ Run all unit tests:
 make test
 ```
 
-Current test coverage: **123 tests** across 17 packages, all passing.
+Current test coverage: **150 tests** across 17 packages, all passing.
 
 Key test files:
 - `src/internal/domain/entity/*_test.go` - Domain entity tests (User, Product, ProductVariant, Order)
 - `src/internal/adapter/http/handler/*_test.go` - HTTP handler tests
-- `src/usecase/*_test.go` - Use case business logic tests
+- `src/usecase/*_test.go` - Use case business logic tests (order, product, product_variant)
 - `src/internal/infrastructure/auth/*_test.go` - JWT authentication tests
 
 ## Integration Tests
