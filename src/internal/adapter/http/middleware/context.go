@@ -11,7 +11,7 @@ import (
 func GetUserFromContext(r *http.Request) (*auth.Claims, error) {
 	claims, ok := r.Context().Value(UserContextKey).(*auth.Claims)
 	if !ok {
-		return nil, errors.New("user not found in context")
+		return nil, errors.New("User not found in context")
 	}
 	return claims, nil
 }

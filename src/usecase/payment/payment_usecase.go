@@ -29,15 +29,13 @@ func NewPaymentUseCase(
 
 func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.PaymentWebhookRequest) error {
 	if req.TransactionID == "" {
-		return errors.New("transaction_id is required")
+		return errors.New("Transaction ID is required")
 	}
 
-	// Check for duplicate transaction_id (idempotency)
 	existingLogs, err := uc.webhookRepo.GetByOrderID(ctx, req.OrderID)
 	if err == nil {
 		for _, log := range existingLogs {
 			if log.TransactionID == req.TransactionID {
-				// Already processed this transaction, return success
 				return nil
 			}
 		}
@@ -45,13 +43,12 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 
 	orderID, err := uuid.Parse(req.OrderID)
 	if err != nil {
-		return errors.New("invalid order_id format")
+		return errors.New("Invalid order ID format")
 	}
 
-	// Get the order
 	order, err := uc.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
-		return errors.New("order not found")
+		return errors.New("Order not found")
 	}
 
 	if order.Status != entity.Pending {

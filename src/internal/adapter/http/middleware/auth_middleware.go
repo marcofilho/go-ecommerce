@@ -36,14 +36,14 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		// Extract token from Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			m.writeError(w, "missing authorization header", http.StatusUnauthorized)
+			m.writeError(w, "Missing authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		// Check Bearer token format
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			m.writeError(w, "invalid authorization header format", http.StatusUnauthorized)
+			m.writeError(w, "Invalid authorization header format", http.StatusUnauthorized)
 			return
 		}
 
@@ -52,7 +52,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		// Validate token
 		claims, err := m.authUseCase.ValidateToken(tokenString)
 		if err != nil {
-			m.writeError(w, "invalid or expired token", http.StatusUnauthorized)
+			m.writeError(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
 
@@ -69,13 +69,35 @@ func (m *AuthMiddleware) RequireRole(role entity.Role) func(http.Handler) http.H
 			// Get user from context
 			claims, ok := r.Context().Value(UserContextKey).(*auth.Claims)
 			if !ok {
-				m.writeError(w, "unauthorized", http.StatusUnauthorized)
+				m.writeError(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 
 			// Check role
 			if claims.Role != role {
-				m.writeError(w, "insufficient permissions", http.StatusForbidden)
+				m.writeError(w, "Insufficient permissions", http.StatusForbidden)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// RequirePermission checks if the authenticated user has the required permission
+func (m *AuthMiddleware) RequirePermission(permission Permission) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get user from context
+			claims, ok := r.Context().Value(UserContextKey).(*auth.Claims)
+			if !ok {
+				m.writeError(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Check if user's role has the required permission
+			if !HasPermission(claims.Role, permission) {
+				m.writeError(w, "Forbidden: insufficient permissions for this action", http.StatusForbidden)
 				return
 			}
 

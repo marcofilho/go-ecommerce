@@ -50,73 +50,33 @@ type AuthResponse struct {
 
 // Register creates a new user account
 func (uc *UseCase) Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error) {
-	// Check if user already exists
 	existingUser, _ := uc.userRepo.GetByEmail(ctx, req.Email)
 	if existingUser != nil {
-		return nil, errors.New("email already registered")
+		return nil, errors.New("Email already registered")
 	}
 
-	// Create new user
 	user := &entity.User{
 		ID:        uuid.New(),
 		Email:     req.Email,
 		Name:      req.Name,
-		Role:      entity.RoleCustomer, // Default role
+		Role:      entity.RoleCustomer,
 		Active:    true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
-	// Set password
 	if err := user.SetPassword(req.Password); err != nil {
 		return nil, err
 	}
 
-	// Validate user
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Save to database
 	if err := uc.userRepo.Create(ctx, user); err != nil {
 		return nil, err
 	}
 
-	// Generate token
-	token, err := uc.jwtProvider.GenerateToken(user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AuthResponse{
-		Token:     token,
-		UserID:    user.ID,
-		Email:     user.Email,
-		Name:      user.Name,
-		Role:      user.Role,
-		ExpiresAt: time.Now().Add(24 * time.Hour), // Should match JWT expiration
-	}, nil
-}
-
-// Login authenticates a user
-func (uc *UseCase) Login(ctx context.Context, req LoginRequest) (*AuthResponse, error) {
-	// Find user by email
-	user, err := uc.userRepo.GetByEmail(ctx, req.Email)
-	if err != nil {
-		return nil, errors.New("invalid credentials")
-	}
-
-	// Check if user is active
-	if !user.IsActive() {
-		return nil, errors.New("user account is inactive")
-	}
-
-	// Verify password
-	if !user.CheckPassword(req.Password) {
-		return nil, errors.New("invalid credentials")
-	}
-
-	// Generate token
 	token, err := uc.jwtProvider.GenerateToken(user)
 	if err != nil {
 		return nil, err
@@ -132,7 +92,35 @@ func (uc *UseCase) Login(ctx context.Context, req LoginRequest) (*AuthResponse, 
 	}, nil
 }
 
-// ValidateToken validates a JWT token and returns the claims
+func (uc *UseCase) Login(ctx context.Context, req LoginRequest) (*AuthResponse, error) {
+	user, err := uc.userRepo.GetByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, errors.New("Invalid credentials")
+	}
+
+	if !user.IsActive() {
+		return nil, errors.New("Account is inactive")
+	}
+
+	if !user.CheckPassword(req.Password) {
+		return nil, errors.New("Invalid credentials")
+	}
+
+	token, err := uc.jwtProvider.GenerateToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AuthResponse{
+		Token:     token,
+		UserID:    user.ID,
+		Email:     user.Email,
+		Name:      user.Name,
+		Role:      user.Role,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}, nil
+}
+
 func (uc *UseCase) ValidateToken(tokenString string) (*auth.Claims, error) {
 	return uc.jwtProvider.ValidateToken(tokenString)
 }

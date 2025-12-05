@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -18,45 +18,59 @@ func SetupRoutes(c *Container) *http.ServeMux {
 	mux.HandleFunc("POST /api/auth/register", c.AuthHandler.Register)
 	mux.HandleFunc("POST /api/auth/login", c.AuthHandler.Login)
 
-	// Product routes (protected - require authentication)
+	// Product routes
+	// Public: Anyone can view products
+	mux.HandleFunc("GET /api/products", c.ProductHandler.ListProducts)
+	mux.HandleFunc("GET /api/products/{id}", c.ProductHandler.GetProduct)
+
+	// Admin only: Create, update, delete products
 	mux.Handle("POST /api/products", c.AuthMiddleware.Authenticate(
-		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionCreateProduct)(
 			http.HandlerFunc(c.ProductHandler.CreateProduct),
 		),
 	))
-	mux.HandleFunc("GET /api/products", c.ProductHandler.ListProducts)    // Public
-	mux.HandleFunc("GET /api/products/{id}", c.ProductHandler.GetProduct) // Public
 	mux.Handle("PUT /api/products/{id}", c.AuthMiddleware.Authenticate(
-		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionUpdateProduct)(
 			http.HandlerFunc(c.ProductHandler.UpdateProduct),
 		),
 	))
 	mux.Handle("DELETE /api/products/{id}", c.AuthMiddleware.Authenticate(
-		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionDeleteProduct)(
 			http.HandlerFunc(c.ProductHandler.DeleteProduct),
 		),
 	))
 
-	// Order routes (protected - authenticated users only)
+	// Order routes
+	// Authenticated users: Create and view orders
 	mux.Handle("POST /api/orders", c.AuthMiddleware.Authenticate(
-		http.HandlerFunc(c.OrderHandler.CreateOrder),
+		c.AuthMiddleware.RequirePermission(middleware.PermissionCreateOrder)(
+			http.HandlerFunc(c.OrderHandler.CreateOrder),
+		),
 	))
 	mux.Handle("GET /api/orders", c.AuthMiddleware.Authenticate(
-		http.HandlerFunc(c.OrderHandler.ListOrders),
+		c.AuthMiddleware.RequirePermission(middleware.PermissionListOrders)(
+			http.HandlerFunc(c.OrderHandler.ListOrders),
+		),
 	))
 	mux.Handle("GET /api/orders/{id}", c.AuthMiddleware.Authenticate(
-		http.HandlerFunc(c.OrderHandler.GetOrder),
+		c.AuthMiddleware.RequirePermission(middleware.PermissionViewOrder)(
+			http.HandlerFunc(c.OrderHandler.GetOrder),
+		),
 	))
+
+	// Admin only: Update order status
 	mux.Handle("PUT /api/orders/{id}/status", c.AuthMiddleware.Authenticate(
-		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionUpdateOrderStatus)(
 			http.HandlerFunc(c.OrderHandler.UpdateOrderStatus),
 		),
 	))
 
-	// Payment webhook routes (public - external integration)
-	mux.HandleFunc("POST /api/payment-webhook", c.PaymentHandler.PaymentWebhookHandler)
+	// Payment webhook routes
+	mux.HandleFunc("POST /api/payment-webhook", c.PaymentHandler.PaymentWebhookHandler) // Public - external integration
+
+	// Admin only: View webhook history
 	mux.Handle("GET /api/orders/{id}/payment-history", c.AuthMiddleware.Authenticate(
-		c.AuthMiddleware.RequireRole(entity.RoleAdmin)(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionViewWebhookHistory)(
 			http.HandlerFunc(c.PaymentHandler.GetWebhookHistoryHandler),
 		),
 	))
