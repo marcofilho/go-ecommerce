@@ -214,6 +214,10 @@ make test-webhook
 
 ## Architecture
 
+The project follows **Clean Architecture** principles with **Dependency Inversion** - all layers depend on interfaces, not concrete implementations.
+
+**📖 See [Architecture & Design Principles](docs/ARCHITECTURE.md) for detailed explanation of interfaces, SOLID principles, and testing strategies**
+
 ```
 src/
 ├── cmd/api/              # Entry point (main, container, routes)
@@ -222,7 +226,7 @@ src/
 │   │   ├── entity/       # User, Product, Order, WebhookLog
 │   │   └── repository/   # Repository interfaces
 │   ├── infrastructure/   # Repository implementations (PostgreSQL)
-│   │   ├── auth/         # JWT provider
+│   │   ├── auth/         # JWT provider (implements TokenProvider interface)
 │   │   ├── database/     # Database connection & migrations
 │   │   └── repository/   # PostgreSQL implementations
 │   ├── adapter/http/
@@ -231,6 +235,7 @@ src/
 │   │   └── dto/          # Data Transfer Objects
 │   └── config/           # Configuration
 └── usecase/              # Business logic (auth, product, order, payment)
+                          # Each use case defines service interfaces
 ```
 
 ## Make Commands
@@ -262,9 +267,10 @@ Environment variables (defaults):
 ## Project Highlights
 
 ✨ **Clean Architecture** - Separation of concerns with domain, use case, and infrastructure layers  
+🏛️ **SOLID Principles** - Interface-based design following Dependency Inversion Principle ([Architecture Guide](docs/ARCHITECTURE.md))  
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
 🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
-🧪 **Comprehensive Testing** - 95 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
+🧪 **Comprehensive Testing** - 105 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  
