@@ -40,6 +40,29 @@ func SetupRoutes(c *Container) *http.ServeMux {
 		),
 	))
 
+	// Product Variant routes
+	// Public: View product variants for a product
+	mux.HandleFunc("GET /api/products/{id}/variants", c.ProductVariantHandler.ListProductVariants)
+
+	// Admin only: Create product variant for a product
+	mux.Handle("POST /api/products/{id}/variants", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionCreateProduct)(
+			http.HandlerFunc(c.ProductVariantHandler.CreateProductVariant),
+		),
+	))
+
+	// Admin only: Update and delete product variants
+	mux.Handle("PUT /api/variants/{variant_id}", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionUpdateProduct)(
+			http.HandlerFunc(c.ProductVariantHandler.UpdateProductVariant),
+		),
+	))
+	mux.Handle("DELETE /api/variants/{variant_id}", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionDeleteProduct)(
+			http.HandlerFunc(c.ProductVariantHandler.DeleteProductVariant),
+		),
+	))
+
 	// Order routes
 	// Authenticated users: Create and view orders
 	mux.Handle("POST /api/orders", c.AuthMiddleware.Authenticate(

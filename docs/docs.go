@@ -23,6 +23,98 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/login": {
+            "post": {
+                "description": "Authenticate user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "description": "Create a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "Registration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/orders": {
             "get": {
                 "description": "Get a paginated list of orders with optional filtering",
@@ -68,13 +160,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse"
+                            "$ref": "#/definitions/dto.OrderListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -98,7 +190,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest"
+                            "$ref": "#/definitions/dto.CreateOrderRequest"
                         }
                     }
                 ],
@@ -106,13 +198,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
+                            "$ref": "#/definitions/dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -144,19 +236,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
+                            "$ref": "#/definitions/dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -190,7 +282,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog"
+                                "$ref": "#/definitions/entity.WebhookLog"
                             }
                         }
                     },
@@ -242,7 +334,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest"
+                            "$ref": "#/definitions/dto.UpdateOrderStatusRequest"
                         }
                     }
                 ],
@@ -250,19 +342,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
+                            "$ref": "#/definitions/dto.OrderResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -295,7 +387,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest"
+                            "$ref": "#/definitions/entity.PaymentWebhookRequest"
                         }
                     }
                 ],
@@ -325,6 +417,50 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/product_variants/{id}": {
+            "get": {
+                "description": "Get detailed information about a specific product variant",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product_variants"
+                ],
+                "summary": "Get a product variant by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product Variant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -370,13 +506,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse"
+                            "$ref": "#/definitions/dto.ProductListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -400,7 +536,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest"
+                            "$ref": "#/definitions/dto.ProductRequest"
                         }
                     }
                 ],
@@ -408,13 +544,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
+                            "$ref": "#/definitions/dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -446,19 +582,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
+                            "$ref": "#/definitions/dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -489,7 +625,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest"
+                            "$ref": "#/definitions/dto.ProductRequest"
                         }
                     }
                 ],
@@ -497,19 +633,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
+                            "$ref": "#/definitions/dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -542,13 +678,253 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}/variants": {
+            "get": {
+                "description": "Get a paginated list of product variants for a specific product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product_variants"
+                ],
+                "summary": "List all product variants for a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new product variant with the provided information. Requires admin privileges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product_variants"
+                ],
+                "summary": "Create a new product variant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product variant information",
+                        "name": "product_variant",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - requires product:create permission",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/variants/{variant_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing product variant's information. Requires admin privileges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product_variants"
+                ],
+                "summary": "Update a product variant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product Variant ID",
+                        "name": "variant_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product Variant information",
+                        "name": "product_variant",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductVariantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - requires product:update permission",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a product variant by ID. Requires admin privileges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product_variants"
+                ],
+                "summary": "Delete a product variant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product Variant ID",
+                        "name": "variant_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - requires product:delete permission",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -556,7 +932,30 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.CreateOrderRequest": {
+        "dto.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateOrderRequest": {
             "type": "object",
             "properties": {
                 "customer_id": {
@@ -566,12 +965,12 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest"
+                        "$ref": "#/definitions/dto.OrderItemRequest"
                     }
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ErrorResponse": {
+        "dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -579,7 +978,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemRequest": {
+        "dto.OrderItemRequest": {
             "type": "object",
             "properties": {
                 "product_id": {
@@ -592,7 +991,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse": {
+        "dto.OrderItemResponse": {
             "type": "object",
             "properties": {
                 "product_id": {
@@ -606,13 +1005,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderListResponse": {
+        "dto.OrderListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse"
+                        "$ref": "#/definitions/dto.OrderResponse"
                     }
                 },
                 "page": {
@@ -626,7 +1025,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderResponse": {
+        "dto.OrderResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -644,7 +1043,7 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.OrderItemResponse"
+                        "$ref": "#/definitions/dto.OrderItemResponse"
                     }
                 },
                 "status": {
@@ -658,13 +1057,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductListResponse": {
+        "dto.ProductListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse"
+                        "$ref": "#/definitions/dto.ProductResponse"
                     }
                 },
                 "page": {
@@ -678,7 +1077,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductRequest": {
+        "dto.ProductRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -699,7 +1098,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.ProductResponse": {
+        "dto.ProductResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -725,7 +1124,91 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_adapter_http_dto.UpdateOrderStatusRequest": {
+        "dto.ProductVariantListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ProductVariantResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ProductVariantRequest": {
+            "type": "object",
+            "properties": {
+                "price_override": {
+                    "description": "Optional price override",
+                    "type": "number",
+                    "example": 99.99
+                },
+                "product_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "variant_name": {
+                    "type": "string",
+                    "example": "Color"
+                },
+                "variant_value": {
+                    "type": "string",
+                    "example": "Red"
+                }
+            }
+        },
+        "dto.ProductVariantResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "has_override": {
+                    "description": "Indicates if price is overridden",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "price": {
+                    "description": "Effective price (override or base product price)",
+                    "type": "number"
+                },
+                "price_override": {
+                    "description": "The override value if set",
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "variant_name": {
+                    "type": "string"
+                },
+                "variant_value": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
                 "status": {
@@ -734,7 +1217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus": {
+        "entity.PaymentStatus": {
             "type": "string",
             "enum": [
                 "unpaid",
@@ -747,21 +1230,21 @@ const docTemplate = `{
                 "Failed"
             ]
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentWebhookRequest": {
+        "entity.PaymentWebhookRequest": {
             "type": "object",
             "properties": {
                 "order_id": {
                     "type": "string"
                 },
                 "payment_status": {
-                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus"
+                    "$ref": "#/definitions/entity.PaymentStatus"
                 },
                 "transaction_id": {
                     "type": "string"
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookLog": {
+        "entity.WebhookLog": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -777,7 +1260,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "paymentStatus": {
-                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.PaymentStatus"
+                    "$ref": "#/definitions/entity.PaymentStatus"
                 },
                 "processedAt": {
                     "type": "string"
@@ -789,14 +1272,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus"
+                    "$ref": "#/definitions/entity.WebhookStatus"
                 },
                 "transactionID": {
                     "type": "string"
                 }
             }
         },
-        "github_com_marcofilho_go-ecommerce_src_internal_domain_entity.WebhookStatus": {
+        "entity.WebhookStatus": {
             "type": "string",
             "enum": [
                 "pending",
@@ -810,6 +1293,39 @@ const docTemplate = `{
                 "WebhookStatusCompleted",
                 "WebhookStatusFailed"
             ]
+        },
+        "handler.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

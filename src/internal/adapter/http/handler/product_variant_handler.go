@@ -22,24 +22,30 @@ func NewProductVariantHandler(useCase productvariant.ProductVariantService) *Pro
 
 // CreateProductVariant godoc
 // @Summary Create a new product variant
-// @Description Create a new product variant with the provided information
+// @Description Create a new product variant with the provided information. Requires admin privileges.
 // @Tags product_variants
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param id path string true "Product ID"
 // @Param product_variant body dto.ProductVariantRequest true "Product variant information"
 // @Success 201 {object} dto.ProductVariantResponse
 // @Failure 400 {object} dto.ErrorResponse
-// @Router /product_variants [post]
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Forbidden - requires product:create permission"
+// @Router /products/{id}/variants [post]
 func (h *ProductVariantHandler) CreateProductVariant(w http.ResponseWriter, r *http.Request) {
-	var req dto.ProductVariantRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid request body")
+	// Get product ID from path parameter
+	productIDStr := r.PathValue("id")
+	productID, err := uuid.Parse(productIDStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
-	productID, err := uuid.Parse(req.ProductID)
-	if err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid product ID")
+	var req dto.ProductVariantRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -88,14 +94,15 @@ func (h *ProductVariantHandler) GetProductVariant(w http.ResponseWriter, r *http
 // @Tags product_variants
 // @Accept json
 // @Produce json
-// @Param product_id query string true "Product ID"
+// @Param id path string true "Product ID"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Items per page" default(10)
 // @Success 200 {object} dto.ProductVariantListResponse
 // @Failure 400 {object} dto.ErrorResponse
-// @Router /product_variants [get]
+// @Router /products/{id}/variants [get]
 func (h *ProductVariantHandler) ListProductVariants(w http.ResponseWriter, r *http.Request) {
-	productIDStr := r.URL.Query().Get("product_id")
+	// Get product ID from path parameter
+	productIDStr := r.PathValue("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid product ID")
@@ -124,18 +131,21 @@ func (h *ProductVariantHandler) ListProductVariants(w http.ResponseWriter, r *ht
 
 // UpdateProductVariant godoc
 // @Summary Update a product variant
-// @Description Update an existing product variant's information
+// @Description Update an existing product variant's information. Requires admin privileges.
 // @Tags product_variants
 // @Accept json
 // @Produce json
-// @Param id path string true "Product Variant ID"
+// @Security BearerAuth
+// @Param variant_id path string true "Product Variant ID"
 // @Param product_variant body dto.ProductVariantRequest true "Product Variant information"
 // @Success 200 {object} dto.ProductVariantResponse
 // @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Forbidden - requires product:update permission"
 // @Failure 404 {object} dto.ErrorResponse
-// @Router /product_variants/{id} [put]
+// @Router /variants/{variant_id} [put]
 func (h *ProductVariantHandler) UpdateProductVariant(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
+	idStr := r.PathValue("variant_id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid product variant ID")
@@ -160,17 +170,20 @@ func (h *ProductVariantHandler) UpdateProductVariant(w http.ResponseWriter, r *h
 
 // DeleteProductVariant godoc
 // @Summary Delete a product variant
-// @Description Delete a product variant by ID
+// @Description Delete a product variant by ID. Requires admin privileges.
 // @Tags product_variants
 // @Accept json
 // @Produce json
-// @Param id path string true "Product Variant ID"
+// @Security BearerAuth
+// @Param variant_id path string true "Product Variant ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Forbidden - requires product:delete permission"
 // @Failure 404 {object} dto.ErrorResponse
-// @Router /product_variants/{id} [delete]
+// @Router /variants/{variant_id} [delete]
 func (h *ProductVariantHandler) DeleteProductVariant(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
+	idStr := r.PathValue("variant_id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid product variant ID")

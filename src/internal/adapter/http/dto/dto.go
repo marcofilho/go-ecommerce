@@ -80,6 +80,16 @@ type ProductVariantResponse struct {
 	UpdatedAt     string   `json:"updated_at"`
 }
 
+// Auth DTOs
+type AuthResponse struct {
+	Token     string `json:"token"`
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
+	Role      string `json:"role"`
+	ExpiresAt string `json:"expires_at"`
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
@@ -96,4 +106,11 @@ type OrderListResponse struct {
 	Total    int             `json:"total"`
 	Page     int             `json:"page"`
 	PageSize int             `json:"page_size"`
+}
+
+type ProductVariantListResponse struct {
+	Data     []ProductVariantResponse `json:"data"`
+	Total    int                      `json:"total"`
+	Page     int                      `json:"page"`
+	PageSize int                      `json:"page_size"`
 }
