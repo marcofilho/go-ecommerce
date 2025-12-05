@@ -11,13 +11,11 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/auth"
 )
 
-// UseCase handles authentication business logic
 type UseCase struct {
 	userRepo    repository.UserRepository
 	jwtProvider *auth.JWTProvider
 }
 
-// NewUseCase creates a new auth use case
 func NewUseCase(userRepo repository.UserRepository, jwtProvider *auth.JWTProvider) *UseCase {
 	return &UseCase{
 		userRepo:    userRepo,
@@ -25,20 +23,17 @@ func NewUseCase(userRepo repository.UserRepository, jwtProvider *auth.JWTProvide
 	}
 }
 
-// RegisterRequest represents user registration data
 type RegisterRequest struct {
 	Email    string
 	Password string
 	Name     string
 }
 
-// LoginRequest represents user login data
 type LoginRequest struct {
 	Email    string
 	Password string
 }
 
-// AuthResponse represents authentication response
 type AuthResponse struct {
 	Token     string      `json:"token"`
 	UserID    uuid.UUID   `json:"user_id"`

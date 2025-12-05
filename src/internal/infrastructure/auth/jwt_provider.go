@@ -9,7 +9,6 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 )
 
-// Claims represents the JWT claims
 type Claims struct {
 	UserID uuid.UUID   `json:"user_id"`
 	Email  string      `json:"email"`
@@ -17,13 +16,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTProvider handles JWT token operations
 type JWTProvider struct {
 	secretKey       string
 	expirationHours int
 }
 
-// NewJWTProvider creates a new JWT provider
 func NewJWTProvider(secretKey string, expirationHours int) *JWTProvider {
 	return &JWTProvider{
 		secretKey:       secretKey,
@@ -55,7 +52,7 @@ func (p *JWTProvider) ValidateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// Verify signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("invalid signing method")
+			return nil, errors.New("Invalid signing method")
 		}
 		return []byte(p.secretKey), nil
 	})
@@ -68,5 +65,5 @@ func (p *JWTProvider) ValidateToken(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 
-	return nil, errors.New("invalid token")
+	return nil, errors.New("Invalid token")
 }

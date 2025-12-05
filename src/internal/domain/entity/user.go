@@ -8,7 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Role represents user roles in the system
 type Role string
 
 const (
@@ -16,7 +15,6 @@ const (
 	RoleCustomer Role = "customer"
 )
 
-// User represents a user in the system
 type User struct {
 	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Email        string    `gorm:"uniqueIndex;not null"`
@@ -28,18 +26,17 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-// Validate validates user fields
 func (u *User) Validate() error {
 	if u.Email == "" {
-		return errors.New("email is required")
+		return errors.New("Email is required")
 	}
 
 	if len(u.Name) < 2 {
-		return errors.New("name must be at least 2 characters")
+		return errors.New("Name must be at least 2 characters")
 	}
 
 	if u.Role != RoleAdmin && u.Role != RoleCustomer {
-		return errors.New("invalid role")
+		return errors.New("Invalid role")
 	}
 
 	return nil
@@ -48,7 +45,7 @@ func (u *User) Validate() error {
 // SetPassword hashes and sets the user password
 func (u *User) SetPassword(password string) error {
 	if len(password) < 6 {
-		return errors.New("password must be at least 6 characters")
+		return errors.New("Password must be at least 6 characters")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -66,12 +63,10 @@ func (u *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-// IsAdmin checks if user has admin role
 func (u *User) IsAdmin() bool {
 	return u.Role == RoleAdmin
 }
 
-// IsActive checks if user is active
 func (u *User) IsActive() bool {
 	return u.Active
 }

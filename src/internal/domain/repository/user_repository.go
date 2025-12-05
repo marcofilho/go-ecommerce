@@ -7,7 +7,6 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 )
 
-// UserRepository defines methods for user data access
 type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)

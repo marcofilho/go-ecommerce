@@ -13,7 +13,6 @@ type userRepositoryPostgres struct {
 	db *gorm.DB
 }
 
-// NewUserRepository creates a new PostgreSQL user repository
 func NewUserRepository(db *gorm.DB) *userRepositoryPostgres {
 	return &userRepositoryPostgres{db: db}
 }
@@ -27,7 +26,7 @@ func (r *userRepositoryPostgres) GetByID(ctx context.Context, id uuid.UUID) (*en
 	err := r.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found")
+			return nil, errors.New("User not found")
 		}
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func (r *userRepositoryPostgres) GetByEmail(ctx context.Context, email string) (
 	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found")
+			return nil, errors.New("User not found")
 		}
 		return nil, err
 	}
