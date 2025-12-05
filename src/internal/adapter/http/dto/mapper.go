@@ -67,3 +67,35 @@ func ToOrderListResponse(orders []*entity.Order, total, page, pageSize int) Pagi
 		PageSize: pageSize,
 	}
 }
+
+// ProductVariant Mappers
+func ToProductVariantResponse(variant *entity.ProductVariant) ProductVariantResponse {
+	price, _ := variant.GetPrice() // Ignoring error for response mapping
+
+	return ProductVariantResponse{
+		ID:            variant.ID.String(),
+		ProductID:     variant.ProductID.String(),
+		VariantName:   variant.VariantName,
+		VariantValue:  variant.VariantValue,
+		Price:         price,
+		PriceOverride: variant.Price_Override,
+		HasOverride:   variant.HasPriceOverride(),
+		Quantity:      variant.Quantity,
+		CreatedAt:     variant.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:     variant.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+}
+
+func ToProductVariantListResponse(variants []*entity.ProductVariant, total, page, pageSize int) PaginatedResponse[ProductVariantResponse] {
+	variantResponses := make([]ProductVariantResponse, 0, len(variants))
+	for _, variant := range variants {
+		variantResponses = append(variantResponses, ToProductVariantResponse(variant))
+	}
+
+	return PaginatedResponse[ProductVariantResponse]{
+		Data:     variantResponses,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}
+}

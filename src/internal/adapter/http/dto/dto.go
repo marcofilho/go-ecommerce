@@ -58,6 +58,28 @@ type OrderResponse struct {
 	UpdatedAt     string              `json:"updated_at"`
 }
 
+// ProductVariant DTOs
+type ProductVariantRequest struct {
+	ProductID     string   `json:"product_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	VariantName   string   `json:"variant_name" example:"Color"`
+	VariantValue  string   `json:"variant_value" example:"Red"`
+	PriceOverride *float64 `json:"price_override,omitempty" example:"99.99"` // Optional price override
+	Quantity      int      `json:"quantity" example:"10"`
+}
+
+type ProductVariantResponse struct {
+	ID            string   `json:"id"`
+	ProductID     string   `json:"product_id"`
+	VariantName   string   `json:"variant_name"`
+	VariantValue  string   `json:"variant_value"`
+	Price         float64  `json:"price"`                    // Effective price (override or base product price)
+	PriceOverride *float64 `json:"price_override,omitempty"` // The override value if set
+	HasOverride   bool     `json:"has_override"`             // Indicates if price is overridden
+	Quantity      int      `json:"quantity"`
+	CreatedAt     string   `json:"created_at"`
+	UpdatedAt     string   `json:"updated_at"`
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
