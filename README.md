@@ -4,6 +4,8 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 
 ## Features
 
+- **Authentication & Authorization** (JWT-based with RBAC)
+- **Role-Based Permissions** (admin vs customer access control)
 - Product Management (CRUD with stock tracking)
 - Order Management (create orders with automatic stock deduction)
 - **Payment Webhook Integration** (simulated payment gateway)
@@ -57,41 +59,63 @@ Visit `http://localhost:8080/swagger/index.html` for interactive API testing
 **Via curl:**
 
 ```bash
-# Create a product
+# Register a new user (customer role by default)
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"customer@example.com","password":"pass123","name":"John Doe"}'
+
+# Login and get JWT token
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"customer@example.com","password":"pass123"}' \
+  | jq -r '.token')
+
+# Create a product (admin only)
 curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"Laptop","description":"High-performance","price":999.99,"quantity":50}'
 
-# List products
+# List products (public access)
 curl http://localhost:8080/api/products
 
-# Create an order
+# Create an order (authenticated users)
 curl -X POST http://localhost:8080/api/orders \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"customer_id":123,"products":[{"product_id":"YOUR_PRODUCT_ID","quantity":2}]}'
 ```
 
 ## API Endpoints
 
+### Authentication
+
+- `POST /api/auth/register` - Register new user account
+- `POST /api/auth/login` - Login and receive JWT token
+
+**📖 See [Authentication Documentation](docs/AUTHENTICATION.md) for complete guide**
+
+**📖 See [Permissions Matrix](docs/PERMISSIONS.md) for role-based access control details**
+
 ### Products
 
-- `POST /api/products` - Create product
-- `GET /api/products` - List products (supports `?page=1&page_size=10&in_stock_only=true`)
-- `GET /api/products/{id}` - Get product
-- `PUT /api/products/{id}` - Update product
-- `DELETE /api/products/{id}` - Delete product
+- `POST /api/products` - Create product (**Admin only** 🔒)
+- `GET /api/products` - List products (supports `?page=1&page_size=10&in_stock_only=true`) (Public)
+- `GET /api/products/{id}` - Get product (Public)
+- `PUT /api/products/{id}` - Update product (**Admin only** 🔒)
+- `DELETE /api/products/{id}` - Delete product (**Admin only** 🔒)
 
 ### Orders
 
-- `POST /api/orders` - Create order
-- `GET /api/orders` - List orders (supports `?page=1&page_size=10&status=pending`)
-- `GET /api/orders/{id}` - Get order
-- `PUT /api/orders/{id}/status` - Update order status
+- `POST /api/orders` - Create order (Authenticated 🔒)
+- `GET /api/orders` - List orders (supports `?page=1&page_size=10&status=pending`) (Authenticated 🔒)
+- `GET /api/orders/{id}` - Get order (Authenticated 🔒)
+- `PUT /api/orders/{id}/status` - Update order status (**Admin only** 🔒)
 
 ### Payment Webhooks
 
-- `POST /api/payment-webhook` - Receive payment status updates
-- `GET /api/orders/{id}/payment-history` - Get payment webhook history
+- `POST /api/payment-webhook` - Receive payment status updates (Public with signature verification)
+- `GET /api/orders/{id}/payment-history` - Get payment webhook history (**Admin only** 🔒)
 
 **📖 See [Payment Webhook Documentation](docs/PAYMENT_WEBHOOK.md) for complete integration guide**
 
@@ -125,7 +149,33 @@ make test
 
 ### Integration Tests
 
-Run webhook integration tests:
+**Authentication Tests:**
+
+```bash
+# Run authentication integration tests
+make test-auth
+```
+
+**Auth Test Coverage (11 scenarios):**
+
+✅ **Registration & Login:**
+- Successful user registration (customer role)
+- Login with valid credentials
+- Login with invalid credentials (401)
+
+✅ **Token Validation:**
+- Access protected endpoint with valid token
+- Access protected endpoint without token (401)
+- Access protected endpoint with invalid token (401)
+
+✅ **Permission Tests:**
+- Customer can view products (public)
+- Customer can create orders (authenticated)
+- Customer cannot create products (403 Forbidden)
+- Customer cannot update order status (403 Forbidden)
+- Admin can create products and update order status
+
+**Webhook Tests:**
 
 ```bash
 # Run payment webhook integration tests
@@ -167,12 +217,18 @@ src/
 ├── cmd/api/              # Entry point (main, container, routes)
 ├── internal/
 │   ├── domain/           # Entities & repository interfaces
+│   │   ├── entity/       # User, Product, Order, WebhookLog
+│   │   └── repository/   # Repository interfaces
 │   ├── infrastructure/   # Repository implementations (PostgreSQL)
+│   │   ├── auth/         # JWT provider
+│   │   ├── database/     # Database connection & migrations
+│   │   └── repository/   # PostgreSQL implementations
 │   ├── adapter/http/
-│   │   ├── handler/      # HTTP handlers
+│   │   ├── handler/      # HTTP handlers (auth, product, order, payment)
+│   │   ├── middleware/   # Authentication & authorization
 │   │   └── dto/          # Data Transfer Objects
 │   └── config/           # Configuration
-└── usecase/              # Business logic
+└── usecase/              # Business logic (auth, product, order, payment)
 ```
 
 ## Make Commands
@@ -183,6 +239,7 @@ make stop          # Stop all services
 make logs          # View service logs
 make test          # Run unit tests in Docker
 make test-webhook  # Run webhook integration tests
+make test-auth     # Run authentication integration tests
 make help          # Show available commands
 ```
 
@@ -196,11 +253,15 @@ Environment variables (defaults):
 - `DB_PASSWORD=postgres`
 - `DB_NAME=ecommerce`
 - `SERVER_PORT=8080`
+- `JWT_SECRET=your-secret-key` (⚠️ Change in production!)
+- `JWT_EXPIRATION_HOURS=24` (Token validity period)
 - `WEBHOOK_SECRET=your-webhook-secret-key` (⚠️ Change in production!)
 
 ## Project Highlights
 
 ✨ **Clean Architecture** - Separation of concerns with domain, use case, and infrastructure layers  
+🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
+🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
 🧪 **Comprehensive Testing** - 77 unit tests + 12 integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  

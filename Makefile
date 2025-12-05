@@ -1,4 +1,4 @@
-.PHONY: start stop logs test test-webhook help
+.PHONY: start stop logs test test-webhook test-auth help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -48,6 +48,11 @@ test-webhook:
 	@echo "Running Payment Webhook Integration Tests..."
 	@./test_payment_webhook_batch.sh
 
+# Run authentication integration tests
+test-auth:
+	@echo "Running Authentication Integration Tests..."
+	@./test_authentication.sh
+
 # Show help
 help:
 	@echo "Go E-Commerce API - Available commands:"
@@ -57,6 +62,7 @@ help:
 	@echo "  make logs          - View service logs"
 	@echo "  make test          - Run unit tests in Docker"
 	@echo "  make test-webhook  - Run webhook integration tests"
+	@echo "  make test-auth     - Run authentication integration tests"
 	@echo ""
 	@echo "Other:"
 	@echo "  make clean     - Remove build artifacts"
