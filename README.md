@@ -46,7 +46,7 @@ Server starts at `http://localhost:8080`
 
 **Note:** `make start` automatically runs:
 
-1. Unit tests (77 tests)
+1. Unit tests (95 tests)
 2. Service startup (PostgreSQL + API)
 3. Integration tests (12 webhook scenarios)
 4. Opens Swagger UI in browser
@@ -132,19 +132,21 @@ make test
 
 **Test Coverage:**
 
-- **Domain entities: 100.0% coverage** ✅
+- **Domain entities: 100.0% coverage** ✅ (Product, Order, User validation & business logic)
 - **DTO mappers: 100.0% coverage** ✅
 - **HTTP handlers: 100.0% coverage** ✅
 - **Product use cases: 100.0% coverage** ✅
 - **Order use cases: 95.1% coverage** ✅
-- **Total: 77 passing tests across 7 test files**
+- **JWT Provider: 100.0% coverage** ✅
+- **Total: 95 passing tests across 8 test suites**
 
 **Test Suites:**
 
-- Entity layer: Product & Order business logic validation, GORM hooks
+- Entity layer: Product, Order & User business logic validation, password hashing, GORM hooks
 - DTO layer: Request/Response mapping and pagination
 - Handler layer: HTTP request/response handling, validation, error responses
 - Use case layer: Product & Order CRUD operations with comprehensive error handling
+- Infrastructure layer: JWT token generation, validation, expiration, and security
 - All edge cases: Invalid inputs, repository errors, validation failures, pagination defaults
 
 ### Integration Tests
@@ -262,7 +264,7 @@ Environment variables (defaults):
 ✨ **Clean Architecture** - Separation of concerns with domain, use case, and infrastructure layers  
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
 🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
-🧪 **Comprehensive Testing** - 77 unit tests + 12 integration tests with 95%+ coverage  
+🧪 **Comprehensive Testing** - 95 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  
