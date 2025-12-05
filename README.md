@@ -7,6 +7,7 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - **Authentication & Authorization** (JWT-based with RBAC)
 - **Role-Based Permissions** (admin vs customer access control)
 - Product Management (CRUD with stock tracking)
+- **Product Variants** (support multiple variants per product with optional price overrides)
 - Order Management (create orders with automatic stock deduction)
 - **Payment Webhook Integration** (simulated payment gateway)
 - Payment status tracking (unpaid → paid/failed)
@@ -105,6 +106,13 @@ curl -X POST http://localhost:8080/api/orders \
 - `PUT /api/products/{id}` - Update product (**Admin only** 🔒)
 - `DELETE /api/products/{id}` - Delete product (**Admin only** 🔒)
 
+### Product Variants
+
+- `POST /api/products/{id}/variants` - Create variant for a product (**Admin only** 🔒)
+- `GET /api/products/{id}/variants` - List variants for a product (supports `?page=1&page_size=10`) (Public)
+- `PUT /api/variants/{variant_id}` - Update variant (**Admin only** 🔒)
+- `DELETE /api/variants/{variant_id}` - Delete variant (**Admin only** 🔒)
+
 ### Orders
 
 - `POST /api/orders` - Create order (Authenticated 🔒)
@@ -132,17 +140,21 @@ make test
 
 **Test Coverage:**
 
-- **Domain entities: 100.0% coverage** ✅ (Product, Order, User validation & business logic)
+- **Domain entities: 99.0% coverage** ✅ (Product, ProductVariant, Order, User validation & business logic)
 - **DTO mappers: 100.0% coverage** ✅
 - **HTTP handlers: 100.0% coverage** ✅
 - **Product use cases: 100.0% coverage** ✅
 - **Order use cases: 95.1% coverage** ✅
 - **JWT Provider: 100.0% coverage** ✅
-- **Total: 95 passing tests across 8 test suites**
+- **Total: 123 passing tests across 11 test suites**
 
 **Test Suites:**
 
-- Entity layer: Product, Order & User business logic validation, password hashing, GORM hooks
+- Entity layer: Product, ProductVariant, Order & User business logic validation, password hashing, GORM hooks
+  - Product: 10 tests (validation, stock management, variants relationship)
+  - ProductVariant: 15 tests (price override logic, validation, UUID generation)
+  - Order: Comprehensive order workflow tests
+  - User: Authentication and validation tests
 - DTO layer: Request/Response mapping and pagination
 - Handler layer: HTTP request/response handling, validation, error responses
 - Use case layer: Product & Order CRUD operations with comprehensive error handling
@@ -270,7 +282,8 @@ Environment variables (defaults):
 🏛️ **SOLID Principles** - Interface-based design following Dependency Inversion Principle ([Architecture Guide](docs/ARCHITECTURE.md))  
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
 🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
-🧪 **Comprehensive Testing** - 105 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
+🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
+🧪 **Comprehensive Testing** - 123 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  

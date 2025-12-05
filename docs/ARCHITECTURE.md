@@ -97,6 +97,21 @@ type ProductService interface {
 
 **Implementation**: `UseCase` implements `ProductService`
 
+**ProductVariantService Interface** (`src/usecase/product_variant/product_variant.go`)
+```go
+type ProductVariantService interface {
+    CreateProductVariant(ctx context.Context, productID uuid.UUID, variantName, variantValue string, priceOverride *float64, quantity int) (*entity.ProductVariant, error)
+    GetProductVariant(ctx context.Context, id uuid.UUID) (*entity.ProductVariant, error)
+    ListProductVariants(ctx context.Context, productID uuid.UUID, page, pageSize int) ([]*entity.ProductVariant, int, error)
+    UpdateProductVariant(ctx context.Context, id uuid.UUID, variantName, variantValue string, priceOverride *float64, quantity int) (*entity.ProductVariant, error)
+    DeleteProductVariant(ctx context.Context, id uuid.UUID) error
+}
+```
+
+**Implementation**: `ProductVariantUseCase` implements `ProductVariantService`
+
+**Key Feature**: Variants support optional price overrides - if set, the variant uses the override price; otherwise, it inherits the base product price.
+
 ### 3. Order Layer
 
 **OrderService Interface** (`src/usecase/order/order_usecase.go`)
@@ -177,7 +192,7 @@ handler := NewAuthHandler(mockService)
 | `usecase/product` | 95%+ | Product business logic |
 | `usecase/order` | 95%+ | Order business logic |
 
-**Total**: 105 unit tests
+**Total**: 123 unit tests
 
 ## Benefits Achieved
 

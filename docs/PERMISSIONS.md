@@ -21,9 +21,9 @@ All permissions are defined in `middleware/permissions.go`:
 
 ```go
 // Product permissions
-PermissionCreateProduct  = "product:create"
-PermissionUpdateProduct  = "product:update"
-PermissionDeleteProduct  = "product:delete"
+PermissionCreateProduct  = "product:create"  // Also covers creating product variants
+PermissionUpdateProduct  = "product:update"  // Also covers updating product variants
+PermissionDeleteProduct  = "product:delete"  // Also covers deleting product variants
 PermissionViewProduct    = "product:view"
 PermissionListProducts   = "product:list"
 
@@ -44,9 +44,9 @@ PermissionViewWebhookHistory = "webhook:view_history"
 | **Products** |
 | `product:view` | ✅ | ✅ | View single product details |
 | `product:list` | ✅ | ✅ | List all products with pagination |
-| `product:create` | ❌ | ✅ | Create new products |
-| `product:update` | ❌ | ✅ | Update existing products |
-| `product:delete` | ❌ | ✅ | Delete products |
+| `product:create` | ❌ | ✅ | Create new products and product variants |
+| `product:update` | ❌ | ✅ | Update existing products and product variants |
+| `product:delete` | ❌ | ✅ | Delete products and product variants |
 | **Orders** |
 | `order:create` | ✅ | ✅ | Create new orders |
 | `order:view` | ✅ | ✅ | View order details |
@@ -65,17 +65,21 @@ PermissionViewWebhookHistory = "webhook:view_history"
 | POST | `/api/auth/login` | Login and receive JWT token |
 | GET | `/api/products` | List all products |
 | GET | `/api/products/{id}` | Get specific product |
+| GET | `/api/products/{id}/variants` | List variants for a product |
 | POST | `/api/payment-webhook` | Payment gateway webhook |
 
 ### Customer Endpoints
 
 Customers can perform the following actions:
 
-#### Products (Read-Only)
+#### Products & Variants (Read-Only)
 ```bash
 # View products (public, but customers have permission too)
 GET /api/products
 GET /api/products/{id}
+
+# View product variants (public)
+GET /api/products/{id}/variants
 ```
 
 #### Orders
@@ -94,7 +98,7 @@ Authorization: Bearer <customer-token>
 ```
 
 **Forbidden Actions for Customers:**
-- ❌ Create/Update/Delete products
+- ❌ Create/Update/Delete products and product variants
 - ❌ Update order status
 - ❌ View webhook history
 
@@ -114,6 +118,18 @@ Authorization: Bearer <admin-token>
 
 # Delete product (requires: product:delete)
 DELETE /api/products/{id}
+Authorization: Bearer <admin-token>
+
+# Create product variant (requires: product:create)
+POST /api/products/{id}/variants
+Authorization: Bearer <admin-token>
+
+# Update product variant (requires: product:update)
+PUT /api/variants/{variant_id}
+Authorization: Bearer <admin-token>
+
+# Delete product variant (requires: product:delete)
+DELETE /api/variants/{variant_id}
 Authorization: Bearer <admin-token>
 ```
 
