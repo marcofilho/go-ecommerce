@@ -80,7 +80,7 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 	}
 
 	if err := uc.webhookRepo.Create(ctx, webhookLog); err != nil {
-		return fmt.Errorf("failed to create webhook log: %w", err)
+		return fmt.Errorf("Failed to create webhook log: %w", err)
 	}
 
 	order.PaymentStatus = req.PaymentStatus
@@ -96,14 +96,14 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 		nextRetry := time.Now().Add(5 * time.Minute)
 		webhookLog.NextRetryAt = &nextRetry
 		uc.webhookRepo.Update(ctx, webhookLog)
-		return fmt.Errorf("failed to update order: %w", err)
+		return fmt.Errorf("Failed to update order: %w", err)
 	}
 
 	// Mark webhook as completed
 	webhookLog.Status = entity.WebhookStatusCompleted
 	webhookLog.ProcessedAt = &now
 	if err := uc.webhookRepo.Update(ctx, webhookLog); err != nil {
-		fmt.Printf("failed to update webhook log status: %v\n", err)
+		fmt.Printf("Failed to update webhook log status: %v\n", err)
 	}
 
 	return nil
