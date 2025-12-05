@@ -25,6 +25,7 @@ All handlers and use cases depend on **interfaces**, not concrete implementation
 │  Depends on: Service Interfaces                 │
 │  - AuthHandler → AuthService                    │
 │  - ProductHandler → ProductService              │
+│  - ProductVariantHandler → ProductVariantService│
 │  - OrderHandler → OrderService                  │
 │  - PaymentHandler → PaymentService              │
 └─────────────────────────────────────────────────┘
@@ -50,6 +51,7 @@ All handlers and use cases depend on **interfaces**, not concrete implementation
 │  Defines: Repository Interfaces                 │
 │  - UserRepository                               │
 │  - ProductRepository                            │
+│  - ProductVariantRepository                     │
 │  - OrderRepository                              │
 │  - WebhookRepository                            │
 └─────────────────────────────────────────────────┘
@@ -185,14 +187,15 @@ handler := NewAuthHandler(mockService)
 ### Test Coverage
 
 | Package | Coverage | Details |
-|---------|----------|---------|
+|---------|----------|---------||
 | `infrastructure/auth` | 92.9% | JWT provider with edge cases |
-| `domain/entity` | 98.7% | User, Product, Order entities |
+| `domain/entity` | 98.7% | User, Product, ProductVariant, Order entities |
 | `adapter/http/handler` | 78.3% | HTTP handlers with mocks |
 | `usecase/product` | 95%+ | Product business logic |
-| `usecase/order` | 95%+ | Order business logic |
+| `usecase/product_variant` | 95%+ | Product variant business logic |
+| `usecase/order` | 95%+ | Order business logic with variant support |
 
-**Total**: 123 unit tests
+**Total**: 150 unit tests across 17 packages
 
 ## Benefits Achieved
 
@@ -262,8 +265,8 @@ productHandler := handler.NewProductHandler(cachedService)
 ## Clean Architecture Layers
 
 ### 1. **Domain Layer** (Innermost)
-- Entities: `User`, `Product`, `Order`
-- Repository interfaces
+- Entities: `User`, `Product`, `ProductVariant`, `Order`, `OrderItem`, `WebhookLog`
+- Repository interfaces: `UserRepository`, `ProductRepository`, `ProductVariantRepository`, `OrderRepository`, `WebhookRepository`
 - No external dependencies
 - Pure business logic
 

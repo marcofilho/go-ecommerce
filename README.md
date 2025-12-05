@@ -47,7 +47,7 @@ Server starts at `http://localhost:8080`
 
 **Note:** `make start` automatically runs:
 
-1. Unit tests (105 tests)
+1. Unit tests (150 tests)
 2. Service startup (PostgreSQL + API)
 3. Integration tests (12 webhook scenarios)
 4. Opens Swagger UI in browser
@@ -144,20 +144,24 @@ make test
 - **DTO mappers: 100.0% coverage** ✅
 - **HTTP handlers: 100.0% coverage** ✅
 - **Product use cases: 100.0% coverage** ✅
+- **Product variant use cases: 100.0% coverage** ✅
 - **Order use cases: 95.1% coverage** ✅
 - **JWT Provider: 100.0% coverage** ✅
-- **Total: 123 passing tests across 11 test suites**
+- **Total: 150 passing tests across 17 test packages**
 
 **Test Suites:**
 
 - Entity layer: Product, ProductVariant, Order & User business logic validation, password hashing, GORM hooks
-  - Product: 10 tests (validation, stock management, variants relationship)
+  - Product: 13 tests (validation, stock management, variants relationship)
   - ProductVariant: 15 tests (price override logic, validation, UUID generation)
-  - Order: Comprehensive order workflow tests
+  - Order: 12 tests (comprehensive order workflow with variant support)
   - User: Authentication and validation tests
 - DTO layer: Request/Response mapping and pagination
 - Handler layer: HTTP request/response handling, validation, error responses
-- Use case layer: Product & Order CRUD operations with comprehensive error handling
+- Use case layer: 
+  - Product: 22 tests (CRUD operations with comprehensive error handling)
+  - ProductVariant: 27 tests (full variant lifecycle with price override logic)
+  - Order: 16 tests (order creation with variant support, stock management)
 - Infrastructure layer: JWT token generation, validation, expiration, and security
 - All edge cases: Invalid inputs, repository errors, validation failures, pagination defaults
 
