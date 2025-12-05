@@ -10,7 +10,7 @@ import (
 
 type ProductVariant struct {
 	ID             uuid.UUID `gorm:"type:uuid;primaryKey"`
-	ProductID      uuid.UUID `gorm:"type:uuid;not null;foreignKey:Product;constraint:OnDelete:CASCADE"`
+	ProductID      uuid.UUID `gorm:"type:uuid;not null;index"`
 	VariantName    string    `gorm:"size:255;not null"`
 	VariantValue   string    `gorm:"size:255;not null"`
 	Price_Override *float64  `gorm:"type:decimal(10,2)"` // Pointer to distinguish between 0 and unset
@@ -18,7 +18,7 @@ type ProductVariant struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 
-	Product *Product `gorm:"foreignKey:ProductID"`
+	Product *Product `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 }
 
 func (p *ProductVariant) BeforeCreate(tx *gorm.DB) error {

@@ -18,11 +18,14 @@ func Connect(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 }
 
 func Migrate(db *gorm.DB) error {
+	// AutoMigrate creates tables and indexes
+	// Order matters: tables with foreign keys must come after their references
 	return db.AutoMigrate(
-		&entity.Product{},
-		&entity.Order{},
-		&entity.OrderItem{},
-		&entity.WebhookLog{},
-		&entity.User{},
+		&entity.User{},           // No dependencies
+		&entity.Product{},        // No dependencies
+		&entity.ProductVariant{}, // Foreign key to Product
+		&entity.Order{},          // Foreign key to User (CustomerID)
+		&entity.OrderItem{},      // Foreign key to Order and Product
+		&entity.WebhookLog{},     // Foreign key to Order
 	)
 }
