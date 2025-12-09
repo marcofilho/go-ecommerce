@@ -15,13 +15,14 @@ echo -e "${BLUE}========================================${NC}\n"
 
 # Test 1: Register a new customer
 echo -e "${YELLOW}Test 1: Register new customer${NC}"
+CUSTOMER_EMAIL="customer_$(date +%s)@example.com"
 REGISTER_RESPONSE=$(curl -s -X POST ${API_URL}/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "customer@example.com",
-    "password": "password123",
-    "name": "John Customer"
-  }')
+  -d "{
+    \"email\": \"$CUSTOMER_EMAIL\",
+    \"password\": \"password123\",
+    \"name\": \"John Customer\"
+  }")
 
 CUSTOMER_TOKEN=$(echo $REGISTER_RESPONSE | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 
@@ -36,15 +37,27 @@ echo ""
 
 # Test 2: Register an admin (manually - in production you'd have a seeder or admin creation endpoint)
 echo -e "${YELLOW}Test 2: Register admin user${NC}"
+ADMIN_EMAIL="admin_$(date +%s)@example.com"
 ADMIN_REGISTER_RESPONSE=$(curl -s -X POST ${API_URL}/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "admin123",
-    "name": "Admin User"
-  }')
+  -d "{
+    \"email\": \"$ADMIN_EMAIL\",
+    \"password\": \"admin123\",
+    \"name\": \"Admin User\"
+  }")
 
-ADMIN_TOKEN=$(echo $ADMIN_REGISTER_RESPONSE | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+# Promote user to admin role in database
+docker exec ecommerce_postgres psql -U postgres -d ecommerce -c "UPDATE users SET role = 'admin' WHERE email = '$ADMIN_EMAIL';" > /dev/null 2>&1
+
+# Re-login to get fresh token with admin role
+ADMIN_LOGIN_RESPONSE=$(curl -s -X POST ${API_URL}/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"email\": \"$ADMIN_EMAIL\",
+    \"password\": \"admin123\"
+  }")
+
+ADMIN_TOKEN=$(echo $ADMIN_LOGIN_RESPONSE | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 
 if [ -z "$ADMIN_TOKEN" ]; then
     echo -e "${RED}✗ Failed to register admin${NC}"
@@ -58,10 +71,10 @@ echo ""
 echo -e "${YELLOW}Test 3: Login as customer${NC}"
 LOGIN_RESPONSE=$(curl -s -X POST ${API_URL}/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "customer@example.com",
-    "password": "password123"
-  }')
+  -d "{
+    \"email\": \"$CUSTOMER_EMAIL\",
+    \"password\": \"password123\"
+  }")
 
 LOGIN_TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 

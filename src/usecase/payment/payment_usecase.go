@@ -49,16 +49,16 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 
 	orderID, err := uuid.Parse(req.OrderID)
 	if err != nil {
-		return errors.New("Invalid order ID format")
+		return errors.New("invalid order_id format")
 	}
 
 	order, err := uc.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
-		return errors.New("Order not found")
+		return errors.New("order not found")
 	}
 
 	if order.Status != entity.Pending {
-		return fmt.Errorf("Order status must be 'pending' to process payment, current status: %s", order.Status)
+		return fmt.Errorf("order status must be 'pending' to process payment, current status: %s", order.Status)
 	}
 
 	if req.PaymentStatus != entity.Paid && req.PaymentStatus != entity.Failed {
