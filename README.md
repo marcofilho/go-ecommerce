@@ -78,8 +78,11 @@ curl -X POST http://localhost:8080/api/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Laptop","description":"High-performance","price":999.99,"quantity":50}'
 
-# List products (public access)
+# List products (public access - includes variants and categories)
 curl http://localhost:8080/api/products
+
+# Get specific product (includes variants and categories)
+curl http://localhost:8080/api/products/YOUR_PRODUCT_ID
 
 # Create an order (authenticated users)
 curl -X POST http://localhost:8080/api/orders \
@@ -104,8 +107,8 @@ curl -X POST http://localhost:8080/api/orders \
 ### Products
 
 - `POST /api/products` - Create product (**Admin only** 🔒)
-- `GET /api/products` - List products with categories (supports `?page=1&page_size=10&in_stock_only=true`) (Public)
-- `GET /api/products/{id}` - Get product with categories (Public)
+- `GET /api/products` - List products with categories and variants (supports `?page=1&page_size=10&in_stock_only=true`) (Public)
+- `GET /api/products/{id}` - Get product with categories and variants (Public)
 - `PUT /api/products/{id}` - Update product (**Admin only** 🔒)
 - `DELETE /api/products/{id}` - Delete product (**Admin only** 🔒)
 
