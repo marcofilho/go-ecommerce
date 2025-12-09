@@ -81,6 +81,16 @@ type ProductVariantResponse struct {
 	UpdatedAt     string   `json:"updated_at"`
 }
 
+// Category DTOs
+type CategoryRequest struct {
+	Name string `json:"name" example:"Electronics"`
+}
+
+type CategoryResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // Auth DTOs
 type AuthResponse struct {
 	Token     string `json:"token"`
