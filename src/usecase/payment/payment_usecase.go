@@ -35,7 +35,7 @@ func NewPaymentUseCase(
 
 func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.PaymentWebhookRequest) error {
 	if req.TransactionID == "" {
-		return errors.New("Transaction ID is required")
+		return errors.New("transaction_id is required")
 	}
 
 	existingLogs, err := uc.webhookRepo.GetByOrderID(ctx, req.OrderID)
