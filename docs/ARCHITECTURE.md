@@ -25,6 +25,7 @@ All handlers and use cases depend on **interfaces**, not concrete implementation
 │  Depends on: Service Interfaces                 │
 │  - AuthHandler → AuthService                    │
 │  - ProductHandler → ProductService              │
+│  - CategoryHandler → CategoryService            │
 │  - ProductVariantHandler → ProductVariantService│
 │  - OrderHandler → OrderService                  │
 │  - PaymentHandler → PaymentService              │
@@ -51,6 +52,7 @@ All handlers and use cases depend on **interfaces**, not concrete implementation
 │  Defines: Repository Interfaces                 │
 │  - UserRepository                               │
 │  - ProductRepository                            │
+│  - CategoryRepository                           │
 │  - ProductVariantRepository                     │
 │  - OrderRepository                              │
 │  - WebhookRepository                            │
@@ -98,6 +100,24 @@ type ProductService interface {
 ```
 
 **Implementation**: `UseCase` implements `ProductService`
+
+**CategoryService Interface** (`src/usecase/category/category_usecase.go`)
+```go
+type CategoryService interface {
+    CreateCategory(ctx context.Context, name string) (*entity.Category, error)
+    GetCategory(ctx context.Context, id uuid.UUID) (*entity.Category, error)
+    ListCategories(ctx context.Context, page, pageSize int) ([]*entity.Category, int, error)
+    UpdateCategory(ctx context.Context, id uuid.UUID, name string) (*entity.Category, error)
+    DeleteCategory(ctx context.Context, id uuid.UUID) error
+    AssignCategoryToProduct(ctx context.Context, productID, categoryID uuid.UUID) error
+    RemoveCategoryFromProduct(ctx context.Context, productID, categoryID uuid.UUID) error
+    GetProductCategories(ctx context.Context, productID uuid.UUID) ([]*entity.Category, error)
+}
+```
+
+**Implementation**: `UseCase` implements `CategoryService`
+
+**Key Feature**: N:N relationship between products and categories via junction table with composite primary key.
 
 **ProductVariantService Interface** (`src/usecase/product_variant/product_variant.go`)
 ```go
@@ -187,15 +207,16 @@ handler := NewAuthHandler(mockService)
 ### Test Coverage
 
 | Package | Coverage | Details |
-|---------|----------|---------||
+|---------|----------|---------|
 | `infrastructure/auth` | 92.9% | JWT provider with edge cases |
-| `domain/entity` | 98.7% | User, Product, ProductVariant, Order entities |
+| `domain/entity` | 98.7% | User, Product, ProductVariant, Category, Order entities |
 | `adapter/http/handler` | 78.3% | HTTP handlers with mocks |
 | `usecase/product` | 95%+ | Product business logic |
+| `usecase/category` | 95%+ | Category business logic with N:N relationships |
 | `usecase/product_variant` | 95%+ | Product variant business logic |
 | `usecase/order` | 95%+ | Order business logic with variant support |
 
-**Total**: 150 unit tests across 17 packages
+**Total**: 276 unit tests across 18 packages
 
 ## Benefits Achieved
 

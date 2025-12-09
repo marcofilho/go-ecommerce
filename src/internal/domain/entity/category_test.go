@@ -41,7 +41,7 @@ func TestCategory_BeforeCreate(t *testing.T) {
 
 	t.Run("Should not override existing UUID", func(t *testing.T) {
 		id, _ := uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
-		
+
 		category := &Category{
 			ID:   id,
 			Name: "Electronics",

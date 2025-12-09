@@ -241,6 +241,118 @@ else
 fi
 echo ""
 
+# Test 12: Customer tries to create category (admin only - should fail)
+echo -e "${YELLOW}Test 12: Customer tries to create category (should fail - admin only)${NC}"
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST ${API_URL}/api/categories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{
+    "name": "Unauthorized Category"
+  }')
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+if [ "$HTTP_CODE" == "403" ]; then
+    echo -e "${GREEN}✓ Correctly rejected (403 Forbidden)${NC}"
+else
+    echo -e "${RED}✗ Unexpected response code: $HTTP_CODE${NC}"
+fi
+echo ""
+
+# Test 13: Admin creates a category (should succeed)
+echo -e "${YELLOW}Test 13: Admin creates category (should succeed)${NC}"
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST ${API_URL}/api/categories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "name": "Electronics"
+  }')
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+if [ "$HTTP_CODE" == "201" ]; then
+    echo -e "${GREEN}✓ Category created successfully${NC}"
+    CATEGORY_RESPONSE=$(echo "$RESPONSE" | sed 's/HTTP_CODE.*//')
+    CATEGORY_ID=$(echo $CATEGORY_RESPONSE | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+    echo "Category ID: $CATEGORY_ID"
+else
+    echo -e "${RED}✗ Failed to create category. HTTP code: $HTTP_CODE${NC}"
+    CATEGORY_ID=""
+fi
+echo ""
+
+# Test 14: Customer lists categories (public endpoint - should succeed)
+echo -e "${YELLOW}Test 14: Customer lists categories (public endpoint)${NC}"
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X GET ${API_URL}/api/categories)
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+if [ "$HTTP_CODE" == "200" ]; then
+    echo -e "${GREEN}✓ Categories listed successfully${NC}"
+else
+    echo -e "${RED}✗ Failed to list categories. HTTP code: $HTTP_CODE${NC}"
+fi
+echo ""
+
+# Test 15: Admin assigns category to product (should succeed)
+echo -e "${YELLOW}Test 15: Admin assigns category to product (should succeed)${NC}"
+if [ ! -z "$PRODUCT_ID" ] && [ ! -z "$CATEGORY_ID" ]; then
+    RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST ${API_URL}/api/products/${PRODUCT_ID}/categories \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $ADMIN_TOKEN" \
+      -d "{
+        \"category_id\": \"$CATEGORY_ID\"
+      }")
+
+    HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+    if [ "$HTTP_CODE" == "200" ]; then
+        echo -e "${GREEN}✓ Category assigned to product successfully${NC}"
+    else
+        echo -e "${RED}✗ Failed to assign category. HTTP code: $HTTP_CODE${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ Skipping (no product or category ID available)${NC}"
+fi
+echo ""
+
+# Test 16: Customer gets product categories (public - should succeed)
+echo -e "${YELLOW}Test 16: Customer gets product categories (public endpoint)${NC}"
+if [ ! -z "$PRODUCT_ID" ]; then
+    RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X GET ${API_URL}/api/products/${PRODUCT_ID}/categories)
+
+    HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+    if [ "$HTTP_CODE" == "200" ]; then
+        echo -e "${GREEN}✓ Product categories retrieved successfully${NC}"
+        CATEGORIES_RESPONSE=$(echo "$RESPONSE" | sed 's/HTTP_CODE.*//')
+        echo "Categories: $CATEGORIES_RESPONSE"
+    else
+        echo -e "${RED}✗ Failed to get product categories. HTTP code: $HTTP_CODE${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ Skipping (no product ID available)${NC}"
+fi
+echo ""
+
+# Test 17: Customer tries to remove category from product (admin only - should fail)
+echo -e "${YELLOW}Test 17: Customer tries to remove category (should fail - admin only)${NC}"
+if [ ! -z "$PRODUCT_ID" ] && [ ! -z "$CATEGORY_ID" ]; then
+    RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X DELETE ${API_URL}/api/products/${PRODUCT_ID}/categories/${CATEGORY_ID} \
+      -H "Authorization: Bearer $CUSTOMER_TOKEN")
+
+    HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+
+    if [ "$HTTP_CODE" == "403" ]; then
+        echo -e "${GREEN}✓ Correctly rejected (403 Forbidden)${NC}"
+    else
+        echo -e "${RED}✗ Unexpected response code: $HTTP_CODE${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ Skipping (no product or category ID available)${NC}"
+fi
+echo ""
+
 # Summary
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Test Summary${NC}"
@@ -252,4 +364,6 @@ echo -e "✓ JWT token generation"
 echo -e "✓ Token validation in middleware"
 echo -e "✓ Role-based access control (admin vs customer)"
 echo -e "✓ Public vs protected endpoints"
+echo -e "✓ Product categories (N:N relationship)"
+echo -e "✓ Category assignment to products"
 echo -e "✓ Proper HTTP status codes (401, 403)"

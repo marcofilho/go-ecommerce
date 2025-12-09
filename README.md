@@ -7,6 +7,7 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - **Authentication & Authorization** (JWT-based with RBAC)
 - **Role-Based Permissions** (admin vs customer access control)
 - Product Management (CRUD with stock tracking)
+- **Product Categories** (N:N relationship - products can have multiple categories)
 - **Product Variants** (support multiple variants per product with optional price overrides)
 - Order Management (create orders with automatic stock deduction)
 - **Payment Webhook Integration** (simulated payment gateway)
@@ -47,7 +48,7 @@ Server starts at `http://localhost:8080`
 
 **Note:** `make start` automatically runs:
 
-1. Unit tests (150 tests)
+1. Unit tests (276 tests)
 2. Service startup (PostgreSQL + API)
 3. Integration tests (12 webhook scenarios)
 4. Opens Swagger UI in browser
@@ -101,10 +102,18 @@ curl -X POST http://localhost:8080/api/orders \
 ### Products
 
 - `POST /api/products` - Create product (**Admin only** 🔒)
-- `GET /api/products` - List products (supports `?page=1&page_size=10&in_stock_only=true`) (Public)
-- `GET /api/products/{id}` - Get product (Public)
+- `GET /api/products` - List products with categories (supports `?page=1&page_size=10&in_stock_only=true`) (Public)
+- `GET /api/products/{id}` - Get product with categories (Public)
 - `PUT /api/products/{id}` - Update product (**Admin only** 🔒)
 - `DELETE /api/products/{id}` - Delete product (**Admin only** 🔒)
+
+### Categories
+
+- `POST /api/categories` - Create category (**Admin only** 🔒)
+- `GET /api/categories` - List categories (supports `?page=1&page_size=10`) (Public)
+- `POST /api/products/{id}/categories` - Assign category to product (**Admin only** 🔒)
+- `DELETE /api/products/{id}/categories/{category_id}` - Remove category from product (**Admin only** 🔒)
+- `GET /api/products/{id}/categories` - Get product categories (Public)
 
 ### Product Variants
 
@@ -140,27 +149,31 @@ make test
 
 **Test Coverage:**
 
-- **Domain entities: 99.0% coverage** ✅ (Product, ProductVariant, Order, User validation & business logic)
+- **Domain entities: 99.0% coverage** ✅ (Product, ProductVariant, Order, Category, User validation & business logic)
 - **DTO mappers: 100.0% coverage** ✅
 - **HTTP handlers: 100.0% coverage** ✅
 - **Product use cases: 100.0% coverage** ✅
 - **Product variant use cases: 100.0% coverage** ✅
+- **Category use cases: 100.0% coverage** ✅
 - **Order use cases: 95.1% coverage** ✅
 - **JWT Provider: 100.0% coverage** ✅
-- **Total: 150 passing tests across 17 test packages**
+- **Total: 276 passing tests across 18 test packages**
 
 **Test Suites:**
 
-- Entity layer: Product, ProductVariant, Order & User business logic validation, password hashing, GORM hooks
-  - Product: 13 tests (validation, stock management, variants relationship)
+- Entity layer: Product, ProductVariant, Order, Category & User business logic validation, password hashing, GORM hooks
+  - Product: 13 tests (validation, stock management, variants & categories relationship)
   - ProductVariant: 15 tests (price override logic, validation, UUID generation)
+  - Category: 4 tests (validation, UUID generation with BeforeCreate hook)
   - Order: 12 tests (comprehensive order workflow with variant support)
   - User: Authentication and validation tests
 - DTO layer: Request/Response mapping and pagination
 - Handler layer: HTTP request/response handling, validation, error responses
+  - Category: 15 tests (CRUD, product-category assignment, error handling)
 - Use case layer: 
   - Product: 22 tests (CRUD operations with comprehensive error handling)
   - ProductVariant: 27 tests (full variant lifecycle with price override logic)
+  - Category: 20 tests (CRUD, pagination, product-category relationships)
   - Order: 16 tests (order creation with variant support, stock management)
 - Infrastructure layer: JWT token generation, validation, expiration, and security
 - All edge cases: Invalid inputs, repository errors, validation failures, pagination defaults
@@ -286,8 +299,9 @@ Environment variables (defaults):
 🏛️ **SOLID Principles** - Interface-based design following Dependency Inversion Principle ([Architecture Guide](docs/ARCHITECTURE.md))  
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
 🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
+🏷️ **Product Categories** - N:N relationship supporting multiple categories per product  
 🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
-🧪 **Comprehensive Testing** - 150 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
+🧪 **Comprehensive Testing** - 276 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  

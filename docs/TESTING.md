@@ -7,12 +7,12 @@ Run all unit tests:
 make test
 ```
 
-Current test coverage: **150 tests** across 17 packages, all passing.
+Current test coverage: **276 tests** across 18 packages, all passing.
 
 Key test files:
-- `src/internal/domain/entity/*_test.go` - Domain entity tests (User, Product, ProductVariant, Order)
+- `src/internal/domain/entity/*_test.go` - Domain entity tests (User, Product, ProductVariant, Category, Order)
 - `src/internal/adapter/http/handler/*_test.go` - HTTP handler tests
-- `src/usecase/*_test.go` - Use case business logic tests (order, product, product_variant)
+- `src/usecase/*_test.go` - Use case business logic tests (order, product, product_variant, category)
 - `src/internal/infrastructure/auth/*_test.go` - JWT authentication tests
 
 ## Integration Tests
@@ -83,7 +83,45 @@ curl -X POST http://localhost:8080/api/products \
 curl http://localhost:8080/api/products
 ```
 
-#### 5. Create Product Variant (Admin only)
+#### 5. Create Category (Admin only)
+```bash
+TOKEN="your_admin_token_here"
+
+curl -X POST http://localhost:8080/api/categories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "Electronics"
+  }'
+```
+
+#### 6. List Categories (Public)
+```bash
+curl http://localhost:8080/api/categories
+```
+
+#### 7. Assign Category to Product (Admin only)
+```bash
+PRODUCT_ID="product_uuid_here"
+CATEGORY_ID="category_uuid_here"
+TOKEN="your_admin_token_here"
+
+curl -X POST "http://localhost:8080/api/products/$PRODUCT_ID/categories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"category_id\": \"$CATEGORY_ID\"
+  }"
+```
+
+#### 8. Get Product Categories (Public)
+```bash
+PRODUCT_ID="product_uuid_here"
+
+curl "http://localhost:8080/api/products/$PRODUCT_ID/categories"
+```
+
+#### 9. Create Product Variant (Admin only)
 ```bash
 PRODUCT_ID="product_uuid_here"
 TOKEN="your_admin_token_here"
@@ -99,14 +137,14 @@ curl -X POST "http://localhost:8080/api/products/$PRODUCT_ID/variants" \
   }'
 ```
 
-#### 6. List Product Variants (Public)
+#### 10. List Product Variants (Public)
 ```bash
 PRODUCT_ID="product_uuid_here"
 
 curl "http://localhost:8080/api/products/$PRODUCT_ID/variants"
 ```
 
-#### 7. Create Order with Variant
+#### 11. Create Order with Variant
 ```bash
 TOKEN="your_token_here"
 PRODUCT_ID="product_uuid_here"
@@ -126,7 +164,7 @@ curl -X POST http://localhost:8080/api/orders \
   }"
 ```
 
-#### 8. Create Order without Variant (Base Product)
+#### 12. Create Order without Variant (Base Product)
 ```bash
 TOKEN="your_token_here"
 PRODUCT_ID="product_uuid_here"
@@ -167,10 +205,16 @@ make swagger
 | | POST /api/auth/login | ✅ | Returns 401 for invalid credentials |
 | **Products** |
 | | POST /api/products | ✅ | Returns 401 without auth, 403 for non-admin |
-| | GET /api/products | ✅ | Public access, returns 200 |
-| | GET /api/products/{id} | ✅ | Public access |
+| | GET /api/products | ✅ | Public access, includes categories |
+| | GET /api/products/{id} | ✅ | Public access, includes categories |
 | | PUT /api/products/{id} | ✅ | Admin only, returns 403 for customer |
 | | DELETE /api/products/{id} | ✅ | Admin only, returns 403 for customer |
+| **Categories** |
+| | POST /api/categories | ✅ | Admin only, returns 403 for customer |
+| | GET /api/categories | ✅ | Public access, paginated |
+| | POST /api/products/{id}/categories | ✅ | Admin only, assigns category to product |
+| | DELETE /api/products/{id}/categories/{category_id} | ✅ | Admin only, removes category from product |
+| | GET /api/products/{id}/categories | ✅ | Public access, lists product categories |
 | **Product Variants** |
 | | POST /api/products/{id}/variants | ✅ | Admin only, returns 403 for customer |
 | | GET /api/products/{id}/variants | ✅ | Public access, returns 200 |
@@ -186,7 +230,7 @@ make swagger
 | **Documentation** |
 | | GET /swagger/index.html | ✅ | Swagger UI accessible |
 
-**Total: 18 endpoints, all working correctly**
+**Total: 23 endpoints, all working correctly**
 
 ## Known Limitations
 
