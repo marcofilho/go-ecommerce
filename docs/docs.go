@@ -1692,7 +1692,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "description": "Optional: customer (default) or admin",
                     "type": "string",
                     "example": "customer"
                 }

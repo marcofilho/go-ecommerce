@@ -23,7 +23,7 @@ type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Name     string `json:"name"`
-	Role     string `json:"role,omitempty" example:"customer"` // Optional: customer (default) or admin
+	Role     string `json:"role,omitempty" example:"customer"`
 }
 
 type LoginRequest struct {
@@ -67,16 +67,13 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Security check: Only authenticated admins can create admin accounts
 	if req.Role == "admin" || req.Role == string(entity.RoleAdmin) {
 		claims, err := middleware.GetUserFromContext(r)
 		if err != nil {
-			// Not authenticated
 			respondError(w, http.StatusUnauthorized, "Only authenticated admin users can create admin accounts")
 			return
 		}
 		if claims.Role != entity.RoleAdmin {
-			// Authenticated but not admin
 			respondError(w, http.StatusForbidden, "Only admin users can create admin accounts")
 			return
 		}

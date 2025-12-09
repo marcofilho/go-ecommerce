@@ -14,8 +14,6 @@ func SetupRoutes(c *Container) *http.ServeMux {
 	// Swagger documentation
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
-	// Auth routes
-	// Register: Public for customers, requires admin auth for admin role creation
 	mux.Handle("POST /api/auth/register", c.AuthMiddleware.OptionalAuth(
 		http.HandlerFunc(c.AuthHandler.Register),
 	))

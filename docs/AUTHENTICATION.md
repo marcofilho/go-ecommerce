@@ -80,15 +80,20 @@ The system supports two roles:
 | Role | Description | Permissions |
 |------|-------------|-------------|
 | `customer` | Default role for registered users | Can view products, create orders, view own orders |
-| `admin` | Administrative role | Full access - can manage products, view all orders, update order status |
+| `admin` | Administrative role | Full access - can manage products, view all orders, update order status, create admin accounts |
 
-**Note:** Currently, all registered users get the `customer` role by default. In production, you should implement a separate endpoint or database seeder to create admin users.
+### Role Assignment Rules
+
+- **Public registration** (no authentication): Always creates `customer` accounts
+- **Admin account creation**: Requires authenticated admin user
+- **Role elevation**: Customers cannot promote themselves or others to admin
+- **Default role**: When `role` field is omitted, defaults to `customer`
 
 ## Endpoints
 
 ### Public Endpoints (No Authentication Required)
 
-#### Register User
+#### Register User (Customer)
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -97,6 +102,39 @@ Content-Type: application/json
   "email": "user@example.com",
   "password": "password123",
   "name": "John Doe"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "role": "customer",
+  "expires_at": "2025-12-06T12:00:00Z"
+}
+```
+
+**Note:** Public registration without authentication always creates customer accounts. To create admin accounts, see [Admin User Creation](#admin-user-creation).
+
+### Admin-Only Endpoints
+
+#### Register User (Admin)
+
+Only authenticated admin users can create other admin accounts.
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+Authorization: Bearer <admin-jwt-token>
+
+{
+  "email": "admin@example.com",
+  "password": "securepassword",
+  "name": "Admin User",
+  "role": "admin"
 }
 ```
 
@@ -232,10 +270,9 @@ JWT tokens contain the following claims:
 
 ## Usage Examples
 
-### 1. Register and Get Token
+### 1. Register Customer Account (Public)
 
 ```bash
-# Register a new user
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
@@ -243,12 +280,70 @@ curl -X POST http://localhost:8080/api/auth/register \
     "password": "securepassword",
     "name": "John Doe"
   }'
-
-# Save the token from the response
-TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-### 2. Login with Existing User
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "john@example.com",
+  "name": "John Doe",
+  "role": "customer",
+  "expires_at": "2025-12-09T12:00:00Z"
+}
+```
+
+### 2. Create Admin Account (Admin Only)
+
+```bash
+# Step 1: Login as existing admin
+ADMIN_TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@ecommerce.com",
+    "password": "adminpassword"
+  }' | jq -r '.token')
+
+# Step 2: Create new admin account
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "email": "newadmin@example.com",
+    "password": "securepassword",
+    "name": "New Admin",
+    "role": "admin"
+  }'
+```
+
+**Response (Success):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user_id": "660e8400-e29b-41d4-a716-446655440001",
+  "email": "newadmin@example.com",
+  "name": "New Admin",
+  "role": "admin",
+  "expires_at": "2025-12-09T12:00:00Z"
+}
+```
+
+**Response (Unauthorized - No Auth):**
+```json
+{
+  "error": "Only authenticated admin users can create admin accounts"
+}
+```
+
+**Response (Forbidden - Customer Attempting):**
+```json
+{
+  "error": "Only admin users can create admin accounts"
+}
+```
+
+### 3. Login with Existing User
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
@@ -259,7 +354,7 @@ curl -X POST http://localhost:8080/api/auth/login \
   }'
 ```
 
-### 3. Access Protected Endpoint
+### 4. Access Protected Endpoint
 
 ```bash
 # Create an order (requires authentication)
@@ -277,7 +372,7 @@ curl -X POST http://localhost:8080/api/orders \
   }'
 ```
 
-### 4. Admin Operations
+### 5. Admin Operations
 
 ```bash
 # Create a product (requires admin role)
@@ -292,19 +387,19 @@ curl -X POST http://localhost:8080/api/products \
   }'
 ```
 
-### 5. Error Responses
+### 6. Error Responses
 
 **Missing Token (401):**
 ```json
 {
-  "error": "missing authorization header"
+  "error": "Missing authorization header"
 }
 ```
 
 **Invalid Token (401):**
 ```json
 {
-  "error": "invalid or expired token"
+  "error": "Invalid or expired token"
 }
 ```
 
