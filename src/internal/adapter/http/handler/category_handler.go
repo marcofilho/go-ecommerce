@@ -28,9 +28,9 @@ func NewCategoryHandler(categoryService category.CategoryService) *CategoryHandl
 // @Produce json
 // @Param category body dto.CategoryRequest true "Category details"
 // @Success 201 {object} dto.CategoryResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
 // @Security BearerAuth
 // @Router /categories [post]
 func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -62,8 +62,8 @@ func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(10)
-// @Success 200 {object} dto.PaginatedResponse[dto.CategoryResponse]
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} dto.CategoryListResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Router /categories [get]
 func (h *CategoryHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
@@ -90,7 +90,7 @@ func (h *CategoryHandler) ListCategories(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	response := dto.PaginatedResponse[dto.CategoryResponse]{
+	response := dto.CategoryListResponse{
 		Data:     categoryResponses,
 		Total:    total,
 		Page:     page,
@@ -108,11 +108,11 @@ func (h *CategoryHandler) ListCategories(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Param id path string true "Product ID"
 // @Param request body dto.AssignCategoryRequest true "Category assignment"
-// @Success 200 {object} MessageResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
+// @Success 200 {object} handler.MessageResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
 // @Security BearerAuth
 // @Router /products/{id}/categories [post]
 func (h *CategoryHandler) AssignCategoryToProduct(w http.ResponseWriter, r *http.Request) {
@@ -151,11 +151,11 @@ func (h *CategoryHandler) AssignCategoryToProduct(w http.ResponseWriter, r *http
 // @Produce json
 // @Param id path string true "Product ID"
 // @Param category_id path string true "Category ID"
-// @Success 200 {object} MessageResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
+// @Success 200 {object} handler.MessageResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
 // @Security BearerAuth
 // @Router /products/{id}/categories/{category_id} [delete]
 func (h *CategoryHandler) RemoveCategoryFromProduct(w http.ResponseWriter, r *http.Request) {
@@ -189,8 +189,8 @@ func (h *CategoryHandler) RemoveCategoryFromProduct(w http.ResponseWriter, r *ht
 // @Produce json
 // @Param id path string true "Product ID"
 // @Success 200 {array} dto.CategoryResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
 // @Router /products/{id}/categories [get]
 func (h *CategoryHandler) GetProductCategories(w http.ResponseWriter, r *http.Request) {
 	productIDStr := r.PathValue("id")

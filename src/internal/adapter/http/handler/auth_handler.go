@@ -38,7 +38,7 @@ type LoginRequest struct {
 // @Success 201 {object} dto.AuthResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /api/auth/register [post]
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -86,7 +86,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} dto.AuthResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/auth/login [post]
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

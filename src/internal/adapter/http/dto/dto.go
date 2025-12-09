@@ -131,3 +131,10 @@ type ProductVariantListResponse struct {
 	Page     int                      `json:"page"`
 	PageSize int                      `json:"page_size"`
 }
+
+type CategoryListResponse struct {
+	Data     []CategoryResponse `json:"data"`
+	Total    int                `json:"total"`
+	Page     int                `json:"page"`
+	PageSize int                `json:"page_size"`
+}
