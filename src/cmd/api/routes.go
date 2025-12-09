@@ -63,6 +63,35 @@ func SetupRoutes(c *Container) *http.ServeMux {
 		),
 	))
 
+	// Category routes
+	// Public: List categories
+	mux.HandleFunc("GET /api/categories", c.CategoryHandler.ListCategories)
+
+	// Admin only: Create categories
+	mux.Handle("POST /api/categories", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionCreateProduct)(
+			http.HandlerFunc(c.CategoryHandler.CreateCategory),
+		),
+	))
+
+	// Product-Category relationship routes
+	// Public: Get product categories
+	mux.HandleFunc("GET /api/products/{id}/categories", c.CategoryHandler.GetProductCategories)
+
+	// Admin only: Assign category to product
+	mux.Handle("POST /api/products/{id}/categories", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionCreateProduct)(
+			http.HandlerFunc(c.CategoryHandler.AssignCategoryToProduct),
+		),
+	))
+
+	// Admin only: Remove category from product
+	mux.Handle("DELETE /api/products/{id}/categories/{category_id}", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionDeleteProduct)(
+			http.HandlerFunc(c.CategoryHandler.RemoveCategoryFromProduct),
+		),
+	))
+
 	// Order routes
 	// Authenticated users: Create and view orders
 	mux.Handle("POST /api/orders", c.AuthMiddleware.Authenticate(

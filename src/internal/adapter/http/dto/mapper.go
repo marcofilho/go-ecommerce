@@ -6,12 +6,22 @@ import (
 
 // Product Mappers
 func ToProductResponse(product *entity.Product) ProductResponse {
+	// Map categories
+	categories := make([]CategoryResponse, 0, len(product.Categories))
+	for _, cat := range product.Categories {
+		categories = append(categories, CategoryResponse{
+			ID:   cat.ID.String(),
+			Name: cat.Name,
+		})
+	}
+
 	return ProductResponse{
 		ID:          product.ID.String(),
 		Name:        product.Name,
 		Description: product.Description,
 		Price:       product.Price,
 		Quantity:    product.Quantity,
+		Categories:  categories,
 		CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}

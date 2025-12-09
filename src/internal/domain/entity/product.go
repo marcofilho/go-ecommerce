@@ -18,7 +18,8 @@ type Product struct {
 	UpdatedAt   time.Time
 
 	// Relations (not stored in DB, loaded via GORM preload)
-	Variants []ProductVariant `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+	Variants   []ProductVariant `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+	Categories []Category       `gorm:"many2many:product_categories;"`
 }
 
 func (p *Product) BeforeCreate(tx *gorm.DB) error {

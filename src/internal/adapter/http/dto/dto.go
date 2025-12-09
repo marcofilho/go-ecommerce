@@ -17,13 +17,14 @@ type ProductRequest struct {
 }
 
 type ProductResponse struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Quantity    int     `json:"quantity"`
-	CreatedAt   string  `json:"created_at"`
-	UpdatedAt   string  `json:"updated_at"`
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Price       float64            `json:"price"`
+	Quantity    int                `json:"quantity"`
+	Categories  []CategoryResponse `json:"categories,omitempty"`
+	CreatedAt   string             `json:"created_at"`
+	UpdatedAt   string             `json:"updated_at"`
 }
 
 // Order DTOs
@@ -89,6 +90,10 @@ type CategoryRequest struct {
 type CategoryResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type AssignCategoryRequest struct {
+	CategoryID string `json:"category_id" example:"550e8400-e29b-41d4-a716-446655440000"`
 }
 
 // Auth DTOs

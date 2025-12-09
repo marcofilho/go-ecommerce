@@ -26,7 +26,7 @@ func (r *ProductRepositoryPostgres) Create(ctx context.Context, product *entity.
 
 func (r *ProductRepositoryPostgres) GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
 	var product entity.Product
-	err := r.db.WithContext(ctx).First(&product, "id = ?", id).Error
+	err := r.db.WithContext(ctx).Preload("Categories").First(&product, "id = ?", id).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -55,7 +55,7 @@ func (r *ProductRepositoryPostgres) GetAll(ctx context.Context, page, pageSize i
 
 	// Apply pagination
 	offset := (page - 1) * pageSize
-	err := query.Offset(offset).Limit(pageSize).Find(&products).Error
+	err := query.Preload("Categories").Offset(offset).Limit(pageSize).Find(&products).Error
 
 	if err != nil {
 		return nil, 0, err
