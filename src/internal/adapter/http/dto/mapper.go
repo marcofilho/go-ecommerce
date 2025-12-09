@@ -15,6 +15,12 @@ func ToProductResponse(product *entity.Product) ProductResponse {
 		})
 	}
 
+	// Map variants
+	variants := make([]ProductVariantResponse, 0, len(product.Variants))
+	for _, variant := range product.Variants {
+		variants = append(variants, ToProductVariantResponse(&variant))
+	}
+
 	return ProductResponse{
 		ID:          product.ID.String(),
 		Name:        product.Name,
@@ -22,6 +28,7 @@ func ToProductResponse(product *entity.Product) ProductResponse {
 		Price:       product.Price,
 		Quantity:    product.Quantity,
 		Categories:  categories,
+		Variants:    variants,
 		CreatedAt:   product.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   product.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}

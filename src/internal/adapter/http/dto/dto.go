@@ -17,14 +17,15 @@ type ProductRequest struct {
 }
 
 type ProductResponse struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	Price       float64            `json:"price"`
-	Quantity    int                `json:"quantity"`
-	Categories  []CategoryResponse `json:"categories,omitempty"`
-	CreatedAt   string             `json:"created_at"`
-	UpdatedAt   string             `json:"updated_at"`
+	ID          string                   `json:"id"`
+	Name        string                   `json:"name"`
+	Description string                   `json:"description"`
+	Price       float64                  `json:"price"`
+	Quantity    int                      `json:"quantity"`
+	Categories  []CategoryResponse       `json:"categories,omitempty"`
+	Variants    []ProductVariantResponse `json:"variants,omitempty"`
+	CreatedAt   string                   `json:"created_at"`
+	UpdatedAt   string                   `json:"updated_at"`
 }
 
 // Order DTOs

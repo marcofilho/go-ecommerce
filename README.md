@@ -149,6 +149,34 @@ Run all unit tests:
 make test
 ```
 
+### Integration Tests
+
+Run authentication and authorization tests:
+
+```bash
+# Requires running API
+make test-auth
+```
+
+### Load Tests
+
+Test database integrity under concurrent operations:
+
+```bash
+# Requires running API  
+./test_category_load.sh
+```
+
+This comprehensive load test verifies:
+- ✅ **Concurrent category creation** (20 simultaneous requests)
+- ✅ **Concurrent product-category assignments** (50 simultaneous requests)
+- ✅ **Concurrent read operations** (100 simultaneous requests)
+- ✅ **Concurrent deletion operations** (20 simultaneous requests)
+- ✅ **Database integrity** (no orphaned records, constraint violations)
+- ✅ **Composite primary key** (prevents duplicate assignments)
+- ✅ **CASCADE DELETE** (proper cleanup on deletion)
+- ✅ **N:N relationship queries** (eager loading performance)
+
 **Test Coverage:**
 
 - **Domain entities: 99.0% coverage** ✅ (Product, ProductVariant, Order, Category, User validation & business logic)
