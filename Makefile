@@ -1,4 +1,4 @@
-.PHONY: start stop logs test test-webhook test-auth help
+.PHONY: start stop logs test test-webhook test-auth seed clean-db reset-db help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -16,6 +16,16 @@ start:
 	@echo ""
 	@echo "Waiting for API to be ready..."
 	@sleep 5
+	@echo ""
+	@echo "Checking database state..."
+	@USER_COUNT=$$(docker exec ecommerce_postgres psql -U postgres -d ecommerce -t -A -c "SELECT COUNT(*) FROM users;" 2>/dev/null || echo "0"); \
+	if [ "$$USER_COUNT" -eq 0 ]; then \
+		echo "Database is empty. Seeding with initial data..."; \
+		docker exec -i ecommerce_postgres psql -U postgres -d ecommerce < scripts/seed_data.sql | grep -E "NOTICE:" || true; \
+		echo "✓ Database seeded successfully!"; \
+	else \
+		echo "✓ Database already contains data ($$USER_COUNT users found)"; \
+	fi
 	@echo ""
 	@echo "Running Payment Webhook Integration Tests..."
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -53,16 +63,44 @@ test-auth:
 	@echo "Running Authentication Integration Tests..."
 	@./test_authentication.sh
 
+# Database management commands
+seed:
+	@echo "Seeding database with sample data..."
+	@docker exec -i ecommerce_postgres psql -U postgres -d ecommerce < scripts/seed_data.sql | grep -E "NOTICE:" || true
+	@echo "✓ Database seeded!"
+
+clean-db:
+	@echo "⚠️  WARNING: This will delete all data from the database!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		docker exec -i ecommerce_postgres psql -U postgres -d ecommerce < scripts/clean_database.sql | grep -E "NOTICE:" || true; \
+		echo "✓ Database cleaned!"; \
+	else \
+		echo "Cancelled."; \
+	fi
+
+reset-db: clean-db seed
+	@echo "✓ Database reset complete!"
+
 # Show help
 help:
 	@echo "Go E-Commerce API - Available commands:"
 	@echo ""
+	@echo "Services:"
 	@echo "  make start         - Run tests and start all services (PostgreSQL + API)"
 	@echo "  make stop          - Stop all services"
 	@echo "  make logs          - View service logs"
+	@echo ""
+	@echo "Testing:"
 	@echo "  make test          - Run unit tests in Docker"
 	@echo "  make test-webhook  - Run webhook integration tests"
 	@echo "  make test-auth     - Run authentication integration tests"
+	@echo ""
+	@echo "Database:"
+	@echo "  make seed          - Seed database with sample data"
+	@echo "  make clean-db      - Clean all data from database (with confirmation)"
+	@echo "  make reset-db      - Clean and seed database"
 	@echo ""
 	@echo "Other:"
 	@echo "  make clean     - Remove build artifacts"
