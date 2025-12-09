@@ -50,8 +50,11 @@ Server starts at `http://localhost:8080`
 
 1. Unit tests (276 tests)
 2. Service startup (PostgreSQL + API)
-3. Integration tests (12 webhook scenarios)
-4. Opens Swagger UI in browser
+3. Database auto-seeding (if empty) with sample data
+4. Integration tests (webhook + auth scenarios)
+5. Opens Swagger UI in browser
+
+**Default Admin Account:** `admin@ecommerce.com` / `password123`
 
 ### Test API
 
@@ -61,7 +64,7 @@ Visit `http://localhost:8080/swagger/index.html` for interactive API testing
 **Via curl:**
 
 ```bash
-# Register a new user (customer role by default)
+# Register a new customer (public, no auth required)
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"customer@example.com","password":"pass123","name":"John Doe"}'
@@ -71,6 +74,17 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"customer@example.com","password":"pass123"}' \
   | jq -r '.token')
+
+# Create admin account (requires existing admin authentication)
+ADMIN_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@ecommerce.com","password":"password123"}' \
+  | jq -r '.token')
+
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"newadmin@example.com","password":"secure123","name":"New Admin","role":"admin"}'
 
 # Create a product (admin only)
 curl -X POST http://localhost:8080/api/products \
@@ -95,10 +109,10 @@ curl -X POST http://localhost:8080/api/orders \
 
 ### Authentication
 
-- `POST /api/auth/register` - Register new user account
+- `POST /api/auth/register` - Register new user (public: customer role, admin creation requires admin auth)
 - `POST /api/auth/login` - Login and receive JWT token
 
-**📖 See [Authentication Documentation](docs/AUTHENTICATION.md) for complete guide**
+**📖 See [Authentication Documentation](docs/AUTHENTICATION.md) for complete guide including admin account creation**
 
 **📖 See [Permissions Matrix](docs/PERMISSIONS.md) for role-based access control details**
 
@@ -303,14 +317,28 @@ src/
 ## Make Commands
 
 ```bash
+# Services
 make start         # Start services + run all tests (unit + integration)
 make stop          # Stop all services
 make logs          # View service logs
+
+# Testing
 make test          # Run unit tests in Docker
 make test-webhook  # Run webhook integration tests
 make test-auth     # Run authentication integration tests
+
+# Database
+make seed          # Manually seed database with sample data
+make clean-db      # Clean database (with confirmation prompt)
+make reset-db      # Reset database (clean + seed)
+
+# Other
 make help          # Show available commands
 ```
+
+**Note:** The database is automatically seeded with sample data on first startup if empty. Sample credentials:
+- Admin: `admin@ecommerce.com` / `password123`
+- Customer: `john.doe@example.com` / `password123`
 
 ## Configuration
 
@@ -331,14 +359,16 @@ Environment variables (defaults):
 ✨ **Clean Architecture** - Separation of concerns with domain, use case, and infrastructure layers  
 🏛️ **SOLID Principles** - Interface-based design following Dependency Inversion Principle ([Architecture Guide](docs/ARCHITECTURE.md))  
 🔐 **JWT Authentication** - Secure token-based authentication with bcrypt password hashing  
-🛡️ **Role-Based Access Control** - Fine-grained permission system (admin vs customer)  
+🛡️ **Role-Based Access Control** - Fine-grained permission system with admin privilege restrictions  
+👥 **Secure Admin Creation** - Admin accounts require authenticated admin authorization  
 🏷️ **Product Categories** - N:N relationship supporting multiple categories per product  
 🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
-🧪 **Comprehensive Testing** - 276 unit tests + 11 auth integration tests + 12 webhook integration tests with 95%+ coverage  
+🧪 **Comprehensive Testing** - 282 unit tests + 17 auth tests + 12 webhook tests with 95%+ coverage  
 🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  
 ⚡ **Retry Logic** - Webhook status tracking for payment processor retries  
+🗄️ **Auto-Seeding** - Automatic database population with sample data on first startup  
 📖 **API Documentation** - Interactive Swagger UI with complete endpoint documentation  
 🐳 **Containerized** - Docker & Docker Compose for easy deployment  
 🚀 **CI/CD Ready** - Automated testing on startup
