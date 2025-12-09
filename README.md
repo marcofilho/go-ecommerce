@@ -99,6 +99,8 @@ curl -X POST http://localhost:8080/api/orders \
 
 **📖 See [Permissions Matrix](docs/PERMISSIONS.md) for role-based access control details**
 
+**📖 See [Database Schema Documentation](docs/DATABASE_SCHEMA.md) for complete database structure**
+
 ### Products
 
 - `POST /api/products` - Create product (**Admin only** 🔒)

@@ -247,6 +247,42 @@ make swagger
 
 ## Troubleshooting
 
+### Database Migrations
+
+**Manual Migration:**
+```bash
+go run src/cmd/migrate/main.go
+```
+
+**Check Migration Status:**
+```bash
+# Connect to database
+docker exec -it ecommerce_postgres psql -U postgres -d ecommerce
+
+# List all tables
+\dt
+
+# Describe a specific table
+\d products
+\d product_categories
+\d categories
+
+# View table relationships
+SELECT 
+    tc.table_name, 
+    kcu.column_name, 
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name 
+FROM information_schema.table_constraints AS tc 
+JOIN information_schema.key_column_usage AS kcu
+  ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu
+  ON ccu.constraint_name = tc.constraint_name
+WHERE constraint_type = 'FOREIGN KEY';
+```
+
+**📖 See [Database Schema Documentation](DATABASE_SCHEMA.md) for complete database structure**
+
 ### Integration Tests Fail with 404
 **Issue**: Endpoints return "404 page not found"
 
