@@ -34,6 +34,7 @@ type RegisterRequest struct {
 	Email    string
 	Password string
 	Name     string
+	Role     string // Optional: defaults to customer
 }
 
 type LoginRequest struct {
@@ -57,11 +58,23 @@ func (uc *UseCase) Register(ctx context.Context, req RegisterRequest) (*AuthResp
 		return nil, errors.New("Email already registered")
 	}
 
+	// Determine role: default to customer if not specified or invalid
+	role := entity.RoleCustomer
+	if req.Role != "" {
+		if req.Role == string(entity.RoleAdmin) {
+			role = entity.RoleAdmin
+		} else if req.Role == string(entity.RoleCustomer) {
+			role = entity.RoleCustomer
+		} else {
+			return nil, errors.New("Invalid role. Must be 'customer' or 'admin'")
+		}
+	}
+
 	user := &entity.User{
 		ID:        uuid.New(),
 		Email:     req.Email,
 		Name:      req.Name,
-		Role:      entity.RoleCustomer,
+		Role:      role,
 		Active:    true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
