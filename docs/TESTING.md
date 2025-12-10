@@ -7,7 +7,7 @@ Run all unit tests:
 make test
 ```
 
-Current test coverage: **276 tests** across 18 packages, all passing.
+Current test coverage: **282 tests** across 18 packages, all passing.
 
 Key test files:
 - `src/internal/domain/entity/*_test.go` - Domain entity tests (User, Product, ProductVariant, Category, Order)
@@ -26,11 +26,44 @@ docker-compose up -d
 sleep 3
 ```
 
-### Basic Integration Test
+### Authentication Tests
 Tests all major endpoints for correct HTTP status codes and authorization:
 ```bash
-./test_authentication.sh
+make test-auth
 ```
+
+**Coverage (17 scenarios):**
+- ✅ User registration (customer & admin creation)
+- ✅ Login with valid/invalid credentials
+- ✅ Token validation
+- ✅ Role-based access control (admin privileges)
+- ✅ Public vs authenticated endpoints
+
+### Webhook Security Tests
+Comprehensive payment webhook integration tests:
+```bash
+make test-webhook
+```
+
+**Coverage (12 scenarios):**
+- ✅ HMAC signature validation (missing/invalid)
+- ✅ Timestamp-based replay attack prevention
+- ✅ Request validation (transaction ID, order ID, payment status)
+- ✅ Business logic (successful/failed payments)
+- ✅ Idempotency with duplicate transactions
+- ✅ Webhook history audit trail
+- ✅ Concurrent webhook handling
+
+### Replay Attack Prevention Test
+Tests timestamp validation security feature:
+```bash
+./test_replay_attack.sh
+```
+
+**Tests:**
+- ✅ Rejects old timestamps (>5 minutes ago)
+- ✅ Rejects future timestamps (>5 minutes ahead)
+- ✅ Accepts current timestamps within tolerance window
 
 ### Full Workflow Test
 Comprehensive test including product variants, orders with variants, and authorization:
@@ -226,24 +259,33 @@ make swagger
 | | GET /api/orders/{id} | ✅ | Authenticated users |
 | | PUT /api/orders/{id}/status | ✅ | Admin only, returns 403 for customer |
 | **Payment Webhooks** |
-| | POST /api/webhooks/payment | ✅ | Returns 401 without signature |
+| | POST /api/payment-webhook | ✅ | Validates X-Payment-Signature header & timestamp |
+| | GET /api/orders/{id}/payment-history | ✅ | Admin only, returns webhook history |
 | **Documentation** |
 | | GET /swagger/index.html | ✅ | Swagger UI accessible |
 
-**Total: 23 endpoints, all working correctly**
+**Total: 25 endpoints, all working correctly**
+
+**Security Features Tested:**
+- ✅ HMAC-SHA256 signature validation
+- ✅ Timestamp-based replay attack prevention (±5 minute window)
+- ✅ JWT token authentication
+- ✅ Role-based authorization
+- ✅ Transaction ID idempotency
 
 ## Known Limitations
 
-1. **Admin User Creation**: The system doesn't have a public admin registration endpoint. To test admin features, you need to:
-   - Manually update user role in database: `UPDATE users SET role = 'admin' WHERE email = 'user@example.com';`
-   - Or use database seeding/migration scripts
-   - Or implement a protected admin creation endpoint
+1. **Admin User Creation**: Admin accounts can only be created by authenticated admin users. To bootstrap the first admin:
+   - Use the default seeded admin: `admin@ecommerce.com` / `password123`
+   - Or manually update in database: `UPDATE users SET role = 'admin' WHERE email = 'user@example.com';`
 
 2. **Email Validation**: The system checks for duplicate emails. Use unique emails for each test run or reset the database:
    ```bash
    docker-compose down -v
    docker-compose up -d
    ```
+
+3. **Webhook Testing**: Requires valid HMAC signatures and timestamps within ±5 minutes. Use the provided test scripts which handle signature generation automatically.
 
 ## Troubleshooting
 

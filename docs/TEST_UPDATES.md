@@ -1,7 +1,49 @@
 # Test Suite Updates
 
 ## Overview
-This document describes the updates made to the automated test files to accommodate recent schema changes and authentication requirements.
+This document describes the updates made to the automated test files to accommodate authentication requirements, role-based access control, and advanced webhook security features including timestamp-based replay attack prevention.
+
+## Recent Updates (December 2025)
+
+### Advanced Webhook Security Implementation
+
+#### Changes Made
+1. **Entity Update** (`src/internal/domain/entity/payment_webhook.go`):
+   - Added `Timestamp int64` field to `PaymentWebhookRequest` structure
+   - Enables timestamp validation for replay attack prevention
+
+2. **Handler Security** (`src/internal/adapter/http/handler/payment_handler.go`):
+   - Changed header from `X-Webhook-Signature` to `X-Payment-Signature`
+   - Implemented `verifyTimestamp()` method:
+     - Rejects zero timestamps
+     - Rejects timestamps >5 minutes in the future (clock skew protection)
+     - Rejects timestamps >5 minutes old (replay attack prevention)
+   - Returns `401 Unauthorized` for invalid timestamps or signatures
+   - Returns `200 OK` for successful processing
+
+3. **Test Script Updates** (`test_payment_webhook_batch.sh`):
+   - Added `get_timestamp()` helper function: `date +%s`
+   - Updated all 12 test cases to include dynamic timestamps
+   - Changed header references from `X-Webhook-Signature` to `X-Payment-Signature`
+   - Tests now generate current timestamps for each request
+
+4. **New Replay Attack Test** (`test_replay_attack.sh`):
+   - Tests old timestamps (10 minutes ago) - expect 401
+   - Tests future timestamps (10 minutes ahead) - expect 401
+   - Tests current timestamps within tolerance - expect 200
+
+#### Test Results
+- ✅ All 12 webhook integration tests passing
+- ✅ Replay attack prevention verified
+- ✅ Signature validation with new header working
+- ✅ Timestamp validation within ±5 minute window confirmed
+
+#### Security Features Validated
+- HMAC-SHA256 signature verification
+- Timestamp-based replay attack prevention
+- Transaction ID idempotency
+- Webhook audit trail logging
+- Concurrent request handling
 
 ## Changes Made
 

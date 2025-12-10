@@ -160,6 +160,12 @@ type PaymentService interface {
 
 **Implementation**: `PaymentUseCase` implements `PaymentService`
 
+**Security Features**:
+- **HMAC-SHA256 Signature Verification**: Validates `X-Payment-Signature` header using shared secret
+- **Timestamp Validation**: Prevents replay attacks by rejecting requests outside ±5 minute window
+- **Transaction ID Idempotency**: Prevents duplicate processing using unique transaction identifiers
+- **Webhook Audit Trail**: Logs all webhook events with status tracking for compliance
+
 ## Dependency Injection
 
 The `Container` (`src/cmd/api/container.go`) wires up all dependencies:

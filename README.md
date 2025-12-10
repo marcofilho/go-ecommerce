@@ -10,10 +10,13 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - **Product Categories** (N:N relationship - products can have multiple categories)
 - **Product Variants** (support multiple variants per product with optional price overrides)
 - Order Management (create orders with automatic stock deduction)
-- **Payment Webhook Integration** (simulated payment gateway)
+- **Advanced Payment Webhook Security**:
+  - HMAC-SHA256 signature validation
+  - Timestamp-based replay attack prevention (±5 minute tolerance)
+  - Transaction ID-based idempotency
+  - Complete audit trail for compliance
 - Payment status tracking (unpaid → paid/failed)
 - Status workflow (pending → completed/canceled)
-- Webhook audit trail for compliance
 - Pagination & filtering
 - PostgreSQL with GORM ORM
 - Automatic migrations
@@ -150,10 +153,14 @@ curl -X POST http://localhost:8080/api/orders \
 
 ### Payment Webhooks
 
-- `POST /api/payment-webhook` - Receive payment status updates (Public with signature verification)
+- `POST /api/payment-webhook` - Receive payment status updates (Public with HMAC signature & timestamp verification)
 - `GET /api/orders/{id}/payment-history` - Get payment webhook history (**Admin only** 🔒)
 
-**📖 See [Payment Webhook Documentation](docs/PAYMENT_WEBHOOK.md) for complete integration guide**
+**📖 See [Payment Webhook Documentation](docs/PAYMENT_WEBHOOK.md) for complete integration guide including:**
+- HMAC-SHA256 signature generation
+- Timestamp-based replay attack prevention
+- Security best practices
+- Code examples and test scenarios
 
 ## Testing
 
@@ -266,6 +273,7 @@ make test-webhook
 
 - Missing HMAC signature (401)
 - Invalid HMAC signature (401)
+- **Replay attack prevention** (timestamps outside ±5 minute window rejected)
 
 ✅ **Validation Tests:**
 
@@ -364,7 +372,10 @@ Environment variables (defaults):
 🏷️ **Product Categories** - N:N relationship supporting multiple categories per product  
 🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
 🧪 **Comprehensive Testing** - 282 unit tests + 17 auth tests + 12 webhook tests with 95%+ coverage  
-🔒 **Webhook Security** - HMAC-SHA256 signature verification for payment webhooks  
+🔒 **Advanced Webhook Security**:
+  - HMAC-SHA256 signature verification with `X-Payment-Signature` header
+  - Timestamp-based replay attack prevention (±5 minute tolerance window)
+  - Proper HTTP status codes (401 for auth failures, 200 for success)
 🔄 **Idempotency** - Transaction ID-based duplicate prevention  
 📊 **Audit Trail** - Complete webhook event logging with status tracking  
 ⚡ **Retry Logic** - Webhook status tracking for payment processor retries  

@@ -276,7 +276,7 @@ cc0e8400-e29b-41d4-a716-446655440001 | aa0e8400-e29b-41d4-a716-446655440001 | 66
 
 ### 8. webhook_logs
 
-Audit trail for payment webhook events.
+Audit trail for payment webhook events with security validation tracking.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
@@ -284,7 +284,7 @@ Audit trail for payment webhook events.
 | order_id | VARCHAR(255) | NOT NULL, FOREIGN KEY → orders(id) | Order reference |
 | transaction_id | VARCHAR(255) | UNIQUE, NOT NULL | Payment processor transaction ID |
 | status | VARCHAR(50) | NOT NULL | Payment status received |
-| payload | JSONB | NOT NULL | Complete webhook payload |
+| payload | JSONB | NOT NULL | Complete webhook payload (includes timestamp) |
 | created_at | TIMESTAMP | NOT NULL | Webhook receipt timestamp |
 
 **Indexes:**
@@ -295,15 +295,22 @@ Audit trail for payment webhook events.
 
 **Business Rules:**
 - `transaction_id` ensures idempotent webhook processing
-- JSONB payload allows flexible querying of webhook data
-- Used for audit trail and compliance
+- JSONB payload stores complete request including timestamp for replay attack prevention
+- Webhook signature validated via HMAC-SHA256 before logging
+- Timestamp validated to be within ±5 minutes of server time
+- Used for audit trail, compliance, and security forensics
 - Enables replay and debugging of payment events
+
+**Security Features:**
+- HMAC-SHA256 signature validation using `X-Payment-Signature` header
+- Timestamp-based replay attack prevention (rejects requests outside ±5 minute window)
+- Complete payload logging for security audits
 
 **Example:**
 ```sql
-id                                   | order_id                             | transaction_id | status | payload                      | created_at
--------------------------------------+--------------------------------------+----------------+--------+------------------------------+---------------------
-dd0e8400-e29b-41d4-a716-446655440000 | aa0e8400-e29b-41d4-a716-446655440001 | txn_12345      | paid   | {"amount":49.99,"method":"card"} | 2025-12-08 11:10:00
+id                                   | order_id                             | transaction_id | status | payload                                           | created_at
+-------------------------------------+--------------------------------------+----------------+--------+---------------------------------------------------+---------------------
+dd0e8400-e29b-41d4-a716-446655440000 | aa0e8400-e29b-41d4-a716-446655440001 | txn_12345      | paid   | {"amount":49.99,"method":"card","timestamp":1733876543} | 2025-12-08 11:10:00
 ```
 
 ---
