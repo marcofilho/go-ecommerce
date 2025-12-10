@@ -251,6 +251,8 @@ definitions:
         type: string
       payment_status:
         $ref: '#/definitions/entity.PaymentStatus'
+      timestamp:
+        type: integer
       transaction_id:
         type: string
     type: object
@@ -630,14 +632,14 @@ paths:
       consumes:
       - application/json
       description: Receives payment status updates from payment processor with HMAC
-        signature verification
+        signature verification and replay attack prevention
       parameters:
       - description: HMAC-SHA256 signature of the request body
         in: header
-        name: X-Webhook-Signature
+        name: X-Payment-Signature
         required: true
         type: string
-      - description: Payment webhook data
+      - description: Payment webhook data with timestamp
         in: body
         name: webhook
         required: true
@@ -659,7 +661,7 @@ paths:
               type: string
             type: object
         "401":
-          description: Unauthorized
+          description: Unauthorized - Invalid signature or timestamp
           schema:
             additionalProperties:
               type: string

@@ -11,6 +11,7 @@ type PaymentWebhookRequest struct {
 	OrderID       string        `json:"order_id"`
 	TransactionID string        `json:"transaction_id"`
 	PaymentStatus PaymentStatus `json:"payment_status"`
+	Timestamp     int64         `json:"timestamp"`
 }
 
 // WebhookStatus represents the processing status of a webhook

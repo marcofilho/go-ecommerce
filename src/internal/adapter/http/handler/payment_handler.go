@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
@@ -27,15 +28,15 @@ func NewPaymentHandler(paymentUC payment.PaymentService, webhookSecret string) *
 
 // PaymentWebhookHandler handles incoming payment webhooks
 // @Summary Process payment webhook
-// @Description Receives payment status updates from payment processor with HMAC signature verification
+// @Description Receives payment status updates from payment processor with HMAC signature verification and replay attack prevention
 // @Tags payments
 // @Accept json
 // @Produce json
-// @Param X-Webhook-Signature header string true "HMAC-SHA256 signature of the request body"
-// @Param webhook body entity.PaymentWebhookRequest true "Payment webhook data"
+// @Param X-Payment-Signature header string true "HMAC-SHA256 signature of the request body"
+// @Param webhook body entity.PaymentWebhookRequest true "Payment webhook data with timestamp"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
+// @Failure 401 {object} map[string]string "Unauthorized - Invalid signature or timestamp"
 // @Router /payment-webhook [post]
 func (h *PaymentHandler) PaymentWebhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
@@ -45,20 +46,25 @@ func (h *PaymentHandler) PaymentWebhookHandler(w http.ResponseWriter, r *http.Re
 	}
 	defer r.Body.Close()
 
-	signature := r.Header.Get("X-Webhook-Signature")
+	signature := r.Header.Get("X-Payment-Signature")
 	if signature == "" {
-		respondError(w, http.StatusUnauthorized, "Missing webhook signature")
+		respondError(w, http.StatusUnauthorized, "Missing payment signature")
 		return
 	}
 
 	if !h.verifySignature(body, signature) {
-		respondError(w, http.StatusUnauthorized, "Invalid webhook signature")
+		respondError(w, http.StatusUnauthorized, "Invalid payment signature")
 		return
 	}
 
 	var req entity.PaymentWebhookRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if !h.verifyTimestamp(req.Timestamp) {
+		respondError(w, http.StatusUnauthorized, "Request timestamp is too old or invalid")
 		return
 	}
 
@@ -106,4 +112,23 @@ func (h *PaymentHandler) verifySignature(payload []byte, signature string) bool 
 	mac.Write(payload)
 	expectedSignature := hex.EncodeToString(mac.Sum(nil))
 	return hmac.Equal([]byte(signature), []byte(expectedSignature))
+}
+
+func (h *PaymentHandler) verifyTimestamp(timestamp int64) bool {
+	if timestamp == 0 {
+		return false
+	}
+
+	webhookTime := time.Unix(timestamp, 0)
+	now := time.Now()
+
+	if webhookTime.After(now.Add(5 * time.Minute)) {
+		return false
+	}
+
+	if webhookTime.Before(now.Add(-5 * time.Minute)) {
+		return false
+	}
+
+	return true
 }

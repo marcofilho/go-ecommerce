@@ -21,11 +21,6 @@ generate_signature() {
   echo -n "$payload" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //'
 }
 
-# Function to get current timestamp
-get_timestamp() {
-  date +%s
-}
-
 # Function to print test header
 print_test() {
   echo ""
@@ -158,33 +153,30 @@ create_order() {
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 1: Webhook Without Signature (Should Fail 401)"
 ORDER_ID=$(create_order)
-TIMESTAMP=$(get_timestamp)
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
-  -d "{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"txn_no_sig\",\"payment_status\":\"paid\"}")
+  -d "{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"txn_no_sig\",\"payment_status\":\"paid\"}")
 assert_contains "$RESPONSE" "401" "HTTP 401 returned"
-assert_contains "$RESPONSE" "Missing payment signature" "Error message correct"
+assert_contains "$RESPONSE" "Missing webhook signature" "Error message correct"
 
 #═══════════════════════════════════════════════════════════════
 # TEST 2: Invalid Signature
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 2: Webhook With Invalid Signature (Should Fail 401)"
 ORDER_ID=$(create_order)
-TIMESTAMP=$(get_timestamp)
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
   -H "X-Payment-Signature: invalid-signature-12345" \
-  -d "{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"txn_bad_sig\",\"payment_status\":\"paid\"}")
+  -d "{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"txn_bad_sig\",\"payment_status\":\"paid\"}")
 assert_contains "$RESPONSE" "401" "HTTP 401 returned"
-assert_contains "$RESPONSE" "Invalid payment signature" "Error message correct"
+assert_contains "$RESPONSE" "Invalid webhook signature" "Error message correct"
 
 #═══════════════════════════════════════════════════════════════
 # TEST 3: Missing Transaction ID
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 3: Webhook Without Transaction ID (Should Fail 400)"
 ORDER_ID=$(create_order)
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -197,8 +189,7 @@ assert_contains "$RESPONSE" "transaction_id is required" "Error message correct"
 # TEST 4: Invalid Order ID Format
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 4: Webhook With Invalid Order ID (Should Fail 400)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD='{"order_id":"not-a-valid-uuid","timestamp":'$TIMESTAMP',"transaction_id":"txn_bad_id","payment_status":"paid"}'
+PAYLOAD='{"order_id":"not-a-valid-uuid","transaction_id":"txn_bad_id","payment_status":"paid"}'
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -212,8 +203,7 @@ assert_contains "$RESPONSE" "invalid order_id format" "Error message correct"
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 5: Webhook For Non-Existent Order (Should Fail 400)"
 FAKE_ORDER_ID="00000000-0000-0000-0000-000000000000"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$FAKE_ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"txn_no_order\",\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$FAKE_ORDER_ID\",\"transaction_id\":\"txn_no_order\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -227,8 +217,7 @@ assert_contains "$RESPONSE" "order not found" "Error message correct"
 #═══════════════════════════════════════════════════════════════
 print_test "TEST 6: Webhook With Invalid Payment Status (Should Fail 400)"
 ORDER_ID=$(create_order)
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"txn_bad_status\",\"payment_status\":\"processing\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"txn_bad_status\",\"payment_status\":\"processing\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -243,8 +232,7 @@ assert_contains "$RESPONSE" "payment_status must be either" "Error message corre
 print_test "TEST 7: Webhook With Successful Payment (Should Success 200)"
 ORDER_ID=$(create_order)
 TXN_ID="txn_success_$(date +%s)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -266,8 +254,7 @@ assert_contains "$ORDER_PAYMENT" "paid" "Payment status is paid"
 print_test "TEST 8: Webhook With Failed Payment (Should Success 200)"
 ORDER_ID=$(create_order)
 TXN_ID="txn_failed_$(date +%s)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"failed\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"failed\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -288,8 +275,7 @@ assert_contains "$ORDER_PAYMENT" "failed" "Payment status is failed"
 print_test "TEST 9: Idempotency - Duplicate Transaction (Should Success 200)"
 ORDER_ID=$(create_order)
 TXN_ID="txn_duplicate_$(date +%s)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 
 # First request
@@ -324,8 +310,7 @@ ORDER_ID=$(create_order)
 
 # First, complete the order
 TXN_ID_1="txn_first_$(date +%s)"
-TIMESTAMP1=$(get_timestamp)
-PAYLOAD1="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP1,\"transaction_id\":\"$TXN_ID_1\",\"payment_status\":\"paid\"}"
+PAYLOAD1="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID_1\",\"payment_status\":\"paid\"}"
 SIGNATURE1=$(generate_signature "$PAYLOAD1")
 curl -s -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -336,8 +321,7 @@ sleep 1
 
 # Try to process another webhook on completed order
 TXN_ID_2="txn_second_$(date +%s)"
-TIMESTAMP2=$(get_timestamp)
-PAYLOAD2="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP2,\"transaction_id\":\"$TXN_ID_2\",\"payment_status\":\"paid\"}"
+PAYLOAD2="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID_2\",\"payment_status\":\"paid\"}"
 SIGNATURE2=$(generate_signature "$PAYLOAD2")
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -355,8 +339,7 @@ ORDER_ID=$(create_order)
 # Send multiple webhooks with different transaction IDs
 for i in 1 2 3; do
   TXN_ID="txn_history_${i}_$(date +%s)"
-  TIMESTAMP=$(get_timestamp)
-  PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"failed\"}"
+  PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"failed\"}"
   SIGNATURE=$(generate_signature "$PAYLOAD")
   curl -s -X POST "$API_URL/api/payment-webhook" \
     -H "Content-Type: application/json" \
@@ -367,8 +350,7 @@ done
 
 # Now send a successful payment
 TXN_ID_SUCCESS="txn_history_success_$(date +%s)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID_SUCCESS\",\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID_SUCCESS\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 curl -s -X POST "$API_URL/api/payment-webhook" \
   -H "Content-Type: application/json" \
@@ -396,8 +378,7 @@ assert_contains "$ORDER_STATUS" "completed" "Final order status is completed"
 print_test "TEST 12: Concurrent Webhooks For Same Order"
 ORDER_ID=$(create_order)
 TXN_ID="txn_concurrent_$(date +%s)"
-TIMESTAMP=$(get_timestamp)
-PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
+PAYLOAD="{\"order_id\":\"$ORDER_ID\",\"transaction_id\":\"$TXN_ID\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(generate_signature "$PAYLOAD")
 
 # Send 3 concurrent requests with same transaction ID

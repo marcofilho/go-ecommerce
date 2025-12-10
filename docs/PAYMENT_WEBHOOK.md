@@ -2,13 +2,17 @@
 
 ## Overview
 
-The payment webhook endpoint receives payment status updates from the payment processor. This implementation includes HMAC signature verification for security and transaction ID-based idempotency for reliability.
+The payment webhook endpoint receives payment status updates from the payment processor. This implementation includes advanced security features:
+
+- **HMAC-SHA256 signature verification** for authenticity
+- **Timestamp-based replay attack prevention** with 5-minute tolerance window
+- **Transaction ID-based idempotency** for reliability
 
 ## Security Features
 
 ### HMAC Signature Verification
 
-All webhook requests must include a valid HMAC-SHA256 signature in the `X-Webhook-Signature` header. The signature is computed as:
+All webhook requests must include a valid HMAC-SHA256 signature in the `X-Payment-Signature` header. The signature is computed as:
 
 ```
 signature = HMAC-SHA256(webhook_secret, request_body)
@@ -17,14 +21,27 @@ signature = HMAC-SHA256(webhook_secret, request_body)
 **Example (bash):**
 ```bash
 WEBHOOK_SECRET="your-webhook-secret-key"
-PAYLOAD='{"order_id":"123e4567-e89b-12d3-a456-426614174000","transaction_id":"txn_12345","payment_status":"paid"}'
+TIMESTAMP=$(date +%s)
+PAYLOAD="{\"order_id\":\"123e4567-e89b-12d3-a456-426614174000\",\"timestamp\":$TIMESTAMP,\"transaction_id\":\"txn_12345\",\"payment_status\":\"paid\"}"
 SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
 
 curl -X POST http://localhost:8080/api/payment-webhook \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Signature: $SIGNATURE" \
+  -H "X-Payment-Signature: $SIGNATURE" \
   -d "$PAYLOAD"
 ```
+
+### Replay Attack Prevention
+
+To prevent replay attacks, each webhook must include a Unix `timestamp` field. The server validates:
+
+1. **Timestamp is not zero**
+2. **Not too far in the future**: Rejects timestamps more than 5 minutes ahead (protects against clock skew attacks)
+3. **Not too old**: Rejects timestamps older than 5 minutes (prevents replay attacks)
+
+**Tolerance Window:** ±5 minutes
+
+If timestamp validation fails, the webhook returns `401 Unauthorized` with an invalid signature error.
 
 ### Configuration
 
@@ -46,13 +63,14 @@ WEBHOOK_SECRET=my-super-secret-webhook-key-change-in-production
 | Header | Required | Description |
 |--------|----------|-------------|
 | `Content-Type` | Yes | Must be `application/json` |
-| `X-Webhook-Signature` | Yes | HMAC-SHA256 signature of request body |
+| `X-Payment-Signature` | Yes | HMAC-SHA256 signature of request body |
 
 ### Request Body
 
 ```json
 {
   "order_id": "123e4567-e89b-12d3-a456-426614174000",
+  "timestamp": 1733876543,
   "transaction_id": "txn_unique_12345",
   "payment_status": "paid"
 }
@@ -63,6 +81,7 @@ WEBHOOK_SECRET=my-super-secret-webhook-key-change-in-production
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `order_id` | string (UUID) | Yes | The order identifier |
+| `timestamp` | integer (Unix) | Yes | Request timestamp for replay attack prevention |
 | `transaction_id` | string | Yes | Unique transaction identifier for idempotency |
 | `payment_status` | string | Yes | Payment status: `"paid"` or `"failed"` |
 
@@ -86,9 +105,17 @@ WEBHOOK_SECRET=my-super-secret-webhook-key-change-in-production
 **Error (401 Unauthorized):**
 ```json
 {
-  "error": "Invalid webhook signature"
+  "error": "Missing payment signature"
 }
 ```
+
+```json
+{
+  "error": "Invalid payment signature"
+}
+```
+
+**Note:** Timestamp validation failures return 401 with "Invalid payment signature" error.
 
 ## Resilience Features
 
@@ -118,12 +145,13 @@ All webhook events are logged in the `webhook_logs` table with:
 
 ## Validation Rules
 
-1. **Signature Verification**: Request must have valid HMAC signature
-2. **Transaction ID**: Must be present and unique
-3. **Order ID**: Must be a valid UUID format
-4. **Order Exists**: Order must exist in the database
-5. **Order Status**: Order must be in `pending` status
-6. **Payment Status**: Must be either `"paid"` or `"failed"`
+1. **Signature Verification**: Request must have valid HMAC signature in `X-Payment-Signature` header
+2. **Timestamp Validation**: Timestamp must be within ±5 minutes of current time (prevents replay attacks)
+3. **Transaction ID**: Must be present and unique
+4. **Order ID**: Must be a valid UUID format
+5. **Order Exists**: Order must exist in the database
+6. **Order Status**: Order must be in `pending` status
+7. **Payment Status**: Must be either `"paid"` or `"failed"`
 
 ## Behavior
 

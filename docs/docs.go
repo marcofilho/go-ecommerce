@@ -479,7 +479,7 @@ const docTemplate = `{
         },
         "/payment-webhook": {
             "post": {
-                "description": "Receives payment status updates from payment processor with HMAC signature verification",
+                "description": "Receives payment status updates from payment processor with HMAC signature verification and replay attack prevention",
                 "consumes": [
                     "application/json"
                 ],
@@ -494,12 +494,12 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "HMAC-SHA256 signature of the request body",
-                        "name": "X-Webhook-Signature",
+                        "name": "X-Payment-Signature",
                         "in": "header",
                         "required": true
                     },
                     {
-                        "description": "Payment webhook data",
+                        "description": "Payment webhook data with timestamp",
                         "name": "webhook",
                         "in": "body",
                         "required": true,
@@ -528,7 +528,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized - Invalid signature or timestamp",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1604,6 +1604,9 @@ const docTemplate = `{
                 },
                 "payment_status": {
                     "$ref": "#/definitions/entity.PaymentStatus"
+                },
+                "timestamp": {
+                    "type": "integer"
                 },
                 "transaction_id": {
                     "type": "string"
