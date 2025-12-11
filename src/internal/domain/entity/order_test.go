@@ -16,7 +16,7 @@ func TestOrder_CalculateTotal(t *testing.T) {
 			name: "single item",
 			order: Order{
 				Products: []OrderItem{
-					{Price: 100.00, Quantity: 2},
+					{ID: uuid.New(), Price: 100.00, Quantity: 2, TotalPrice: 200.00},
 				},
 			},
 			want: 200.00,
@@ -25,8 +25,8 @@ func TestOrder_CalculateTotal(t *testing.T) {
 			name: "multiple items",
 			order: Order{
 				Products: []OrderItem{
-					{Price: 100.00, Quantity: 2},
-					{Price: 50.00, Quantity: 3},
+					{ID: uuid.New(), Price: 100.00, Quantity: 2, TotalPrice: 200.00},
+					{ID: uuid.New(), Price: 50.00, Quantity: 3, TotalPrice: 150.00},
 				},
 			},
 			want: 350.00,
@@ -147,9 +147,11 @@ func TestOrderItem_Validate(t *testing.T) {
 		{
 			name: "valid item",
 			item: OrderItem{
-				ProductID: validProductID,
-				Quantity:  2,
-				Price:     100.00,
+				ID:         uuid.New(),
+				ProductID:  validProductID,
+				Quantity:   2,
+				Price:      100.00,
+				TotalPrice: 200.00,
 			},
 			wantErr: false,
 		},
@@ -210,16 +212,18 @@ func TestOrderItem_Subtotal(t *testing.T) {
 		{
 			name: "calculate subtotal",
 			item: OrderItem{
-				Quantity: 3,
-				Price:    100.00,
+				Quantity:   3,
+				Price:      100.00,
+				TotalPrice: 300.00,
 			},
 			want: 300.00,
 		},
 		{
 			name: "zero quantity",
 			item: OrderItem{
-				Quantity: 0,
-				Price:    99.99,
+				Quantity:   0,
+				Price:      99.99,
+				TotalPrice: 0.00,
 			},
 			want: 0.00,
 		},
@@ -274,9 +278,11 @@ func TestOrder_Validate(t *testing.T) {
 				CustomerID: 123,
 				Products: []OrderItem{
 					{
-						ProductID: validProductID,
-						Quantity:  2,
-						Price:     100.00,
+						ID:         uuid.New(),
+						ProductID:  validProductID,
+						Quantity:   2,
+						Price:      100.00,
+						TotalPrice: 200.00,
 					},
 				},
 			},

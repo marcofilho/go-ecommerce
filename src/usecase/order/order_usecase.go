@@ -73,11 +73,14 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 			}
 
 			orderItem := entity.OrderItem{
+				ID:        uuid.New(),
 				ProductID: item.ProductID,
 				VariantID: item.VariantID,
 				Quantity:  item.Quantity,
 				Price:     price,
 			}
+
+			orderItem.CalculateTotal()
 
 			if err := orderItem.Validate(); err != nil {
 				return nil, err
@@ -105,11 +108,14 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 			}
 
 			orderItem := entity.OrderItem{
+				ID:        uuid.New(),
 				ProductID: product.ID,
 				VariantID: nil,
 				Quantity:  item.Quantity,
 				Price:     product.Price,
 			}
+
+			orderItem.CalculateTotal()
 
 			if err := orderItem.Validate(); err != nil {
 				return nil, err

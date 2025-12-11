@@ -1,10 +1,10 @@
 package dto
 
 import (
-"testing"
+	"testing"
 
-"github.com/google/uuid"
-"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
+	"github.com/google/uuid"
+	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 )
 
 func TestToProductResponse(t *testing.T) {
@@ -76,9 +76,11 @@ func TestToOrderResponse(t *testing.T) {
 		CustomerID: 123,
 		Products: []entity.OrderItem{
 			{
-				ProductID: productID,
-				Quantity:  2,
-				Price:     100.00,
+				ID:         uuid.New(),
+				ProductID:  productID,
+				Quantity:   2,
+				Price:      100.00,
+				TotalPrice: 200.00,
 			},
 		},
 		TotalPrice:    200.00,

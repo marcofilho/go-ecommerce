@@ -7,15 +7,19 @@ import (
 )
 
 type OrderItem struct {
-	ID        uint       `gorm:"primaryKey"`
-	OrderID   uuid.UUID  `gorm:"type:uuid;not null"`
-	ProductID uuid.UUID  `gorm:"type:uuid;not null"`
-	VariantID *uuid.UUID `gorm:"type:uuid"` // Optional: if ordering a specific variant
-	Quantity  int        `gorm:"not null"`
-	Price     float64    `gorm:"type:decimal(10,2);not null"`
+	ID         uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	OrderID    uuid.UUID  `gorm:"type:uuid;not null"`
+	ProductID  uuid.UUID  `gorm:"type:uuid;not null"`
+	VariantID  *uuid.UUID `gorm:"type:uuid"` // Optional: if ordering a specific variant
+	Quantity   int        `gorm:"not null"`
+	Price      float64    `gorm:"type:decimal(10,2);not null"` // unit_price
+	TotalPrice float64    `gorm:"type:decimal(10,2);not null"` // quantity * unit_price
 }
 
 func (oi *OrderItem) Validate() error {
+	if oi.ID == uuid.Nil {
+		return errors.New("Order item ID is required")
+	}
 	if oi.ProductID == uuid.Nil {
 		return errors.New("Product ID is required")
 	}
@@ -25,9 +29,16 @@ func (oi *OrderItem) Validate() error {
 	if oi.Price < 0 {
 		return errors.New("Price cannot be negative")
 	}
+	if oi.TotalPrice < 0 {
+		return errors.New("Total price cannot be negative")
+	}
 	return nil
 }
 
+func (oi *OrderItem) CalculateTotal() {
+	oi.TotalPrice = oi.Price * float64(oi.Quantity)
+}
+
 func (oi *OrderItem) Subtotal() float64 {
-	return oi.Price * float64(oi.Quantity)
+	return oi.TotalPrice
 }
