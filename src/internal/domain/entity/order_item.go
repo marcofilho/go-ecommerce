@@ -10,10 +10,10 @@ type OrderItem struct {
 	ID         uuid.UUID  `gorm:"type:uuid;primaryKey"`
 	OrderID    uuid.UUID  `gorm:"type:uuid;not null"`
 	ProductID  uuid.UUID  `gorm:"type:uuid;not null"`
-	VariantID  *uuid.UUID `gorm:"type:uuid"` // Optional: if ordering a specific variant
+	VariantID  *uuid.UUID `gorm:"type:uuid"`
 	Quantity   int        `gorm:"not null"`
-	Price      float64    `gorm:"type:decimal(10,2);not null"` // unit_price
-	TotalPrice float64    `gorm:"type:decimal(10,2);not null"` // quantity * unit_price
+	Price      float64    `gorm:"type:decimal(10,2);not null"`
+	TotalPrice float64    `gorm:"type:decimal(10,2);not null"`
 }
 
 func (oi *OrderItem) Validate() error {

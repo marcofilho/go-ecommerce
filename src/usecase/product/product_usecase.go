@@ -9,7 +9,6 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 )
 
-// ProductService defines the interface for product operations
 type ProductService interface {
 	CreateProduct(ctx context.Context, name, description string, price float64, quantity int) (*entity.Product, error)
 	GetProduct(ctx context.Context, id uuid.UUID) (*entity.Product, error)

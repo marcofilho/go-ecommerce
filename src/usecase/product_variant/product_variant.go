@@ -9,7 +9,6 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 )
 
-// ProductVariantService defines the interface for product variant operations
 type ProductVariantService interface {
 	CreateProductVariant(ctx context.Context, productID uuid.UUID, variantName, variantValue string, priceOverride *float64, quantity int) (*entity.ProductVariant, error)
 	GetProductVariant(ctx context.Context, id uuid.UUID) (*entity.ProductVariant, error)

@@ -16,7 +16,6 @@ type CreateOrderItem struct {
 	Quantity  int
 }
 
-// OrderService defines the interface for order operations
 type OrderService interface {
 	CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem) (*entity.Order, error)
 	GetOrder(ctx context.Context, id uuid.UUID) (*entity.Order, error)

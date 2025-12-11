@@ -103,7 +103,6 @@ func (h *ProductVariantHandler) GetProductVariant(w http.ResponseWriter, r *http
 // @Failure 400 {object} dto.ErrorResponse
 // @Router /products/{id}/variants [get]
 func (h *ProductVariantHandler) ListProductVariants(w http.ResponseWriter, r *http.Request) {
-	// Get product ID from path parameter
 	productIDStr := r.PathValue("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {

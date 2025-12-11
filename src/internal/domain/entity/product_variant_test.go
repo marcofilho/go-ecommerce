@@ -65,7 +65,7 @@ func TestProductVariant_GetPrice_WithoutOverride_NoProduct(t *testing.T) {
 		VariantValue:   "Red",
 		Price_Override: nil,
 		Quantity:       10,
-		Product:        nil, // Product not loaded
+		Product:        nil,
 	}
 
 	_, err := variant.GetPrice()
@@ -312,7 +312,6 @@ func TestProductVariant_BeforeCreate_PreservesExistingID(t *testing.T) {
 	}
 }
 
-// Helper function to create float pointer
 func floatPtr(f float64) *float64 {
 	return &f
 }

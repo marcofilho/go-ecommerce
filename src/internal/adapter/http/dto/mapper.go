@@ -6,7 +6,6 @@ import (
 
 // Product Mappers
 func ToProductResponse(product *entity.Product) ProductResponse {
-	// Map categories
 	categories := make([]CategoryResponse, 0, len(product.Categories))
 	for _, cat := range product.Categories {
 		categories = append(categories, CategoryResponse{

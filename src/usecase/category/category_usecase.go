@@ -9,7 +9,6 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 )
 
-// CategoryService defines the interface for category operations
 type CategoryService interface {
 	CreateCategory(ctx context.Context, name string) (*entity.Category, error)
 	GetCategory(ctx context.Context, id uuid.UUID) (*entity.Category, error)
