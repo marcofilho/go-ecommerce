@@ -54,14 +54,17 @@ func TestToProductListResponse(t *testing.T) {
 	if len(response.Data) != 2 {
 		t.Errorf("ToProductListResponse() length = %v, want 2", len(response.Data))
 	}
-	if response.Total != 2 {
-		t.Errorf("ToProductListResponse() Total = %v, want 2", response.Total)
+	if response.Pagination.Total != 2 {
+		t.Errorf("ToProductListResponse() Total = %v, want 2", response.Pagination.Total)
 	}
-	if response.Page != 1 {
-		t.Errorf("ToProductListResponse() Page = %v, want 1", response.Page)
+	if response.Pagination.Page != 1 {
+		t.Errorf("ToProductListResponse() Page = %v, want 1", response.Pagination.Page)
 	}
-	if response.PageSize != 10 {
-		t.Errorf("ToProductListResponse() PageSize = %v, want 10", response.PageSize)
+	if response.Pagination.PageSize != 10 {
+		t.Errorf("ToProductListResponse() PageSize = %v, want 10", response.Pagination.PageSize)
+	}
+	if response.Pagination.TotalPages != 1 {
+		t.Errorf("ToProductListResponse() TotalPages = %v, want 1", response.Pagination.TotalPages)
 	}
 	if response.Data[0].Name != "Laptop" {
 		t.Errorf("ToProductListResponse() Data[0].Name = %v, want Laptop", response.Data[0].Name)
@@ -134,14 +137,17 @@ func TestToOrderListResponse(t *testing.T) {
 	if len(response.Data) != 2 {
 		t.Errorf("ToOrderListResponse() length = %v, want 2", len(response.Data))
 	}
-	if response.Total != 2 {
-		t.Errorf("ToOrderListResponse() Total = %v, want 2", response.Total)
+	if response.Pagination.Total != 2 {
+		t.Errorf("ToOrderListResponse() Total = %v, want 2", response.Pagination.Total)
 	}
-	if response.Page != 1 {
-		t.Errorf("ToOrderListResponse() Page = %v, want 1", response.Page)
+	if response.Pagination.Page != 1 {
+		t.Errorf("ToOrderListResponse() Page = %v, want 1", response.Pagination.Page)
 	}
-	if response.PageSize != 10 {
-		t.Errorf("ToOrderListResponse() PageSize = %v, want 10", response.PageSize)
+	if response.Pagination.PageSize != 10 {
+		t.Errorf("ToOrderListResponse() PageSize = %v, want 10", response.Pagination.PageSize)
+	}
+	if response.Pagination.TotalPages != 1 {
+		t.Errorf("ToOrderListResponse() TotalPages = %v, want 1", response.Pagination.TotalPages)
 	}
 	if response.Data[0].CustomerID != 1 {
 		t.Errorf("ToOrderListResponse() Data[0].CustomerID = %v, want 1", response.Data[0].CustomerID)

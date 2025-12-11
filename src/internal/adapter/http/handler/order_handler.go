@@ -106,12 +106,14 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 
 // ListOrders godoc
 // @Summary List all orders
-// @Description Get a paginated list of orders with optional filtering
+// @Description Get a paginated list of orders with optional filtering and sorting
 // @Tags orders
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Items per page" default(10)
+// @Param sort_by query string false "Sort by field (created_at, total_price)" default("created_at")
+// @Param sort_order query string false "Sort order (asc, desc)" default("desc")
 // @Param status query string false "Filter by status (pending, cancelled, completed)"
 // @Param payment_status query string false "Filter by payment status (unpaid, paid, failed)"
 // @Success 200 {object} dto.OrderListResponse

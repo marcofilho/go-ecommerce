@@ -195,42 +195,52 @@ VALUES (
     ) ON CONFLICT (id) DO NOTHING;
 
 -- ============================================
--- 7. ORDER_ITEMS (4 records) - id is auto-increment
+-- 7. ORDER_ITEMS (4 records) - id is UUID now
 -- ============================================
 INSERT INTO
     order_items (
+        id,
         order_id,
         product_id,
         variant_id,
         quantity,
-        price
+        price,
+        total_price
     )
 VALUES (
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         '10101010-0101-0101-0101-010101010101',
         'd4444444-4444-4444-4444-444444444444',
         '77777777-7777-7777-7777-777777777777',
         1,
+        3499.00,
         3499.00
     ),
     (
+        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         '10101010-0101-0101-0101-010101010101',
         'e5555555-5555-5555-5555-555555555555',
         '99999999-9999-9999-9999-999999999999',
         1,
+        99.99,
         99.99
     ),
     (
+        'cccccccc-cccc-cccc-cccc-cccccccccccc',
         '20202020-0202-0202-0202-020202020202',
         'f6666666-6666-6666-6666-666666666666',
         NULL,
         1,
+        449.99,
         449.99
     ),
     (
+        'dddddddd-dddd-dddd-dddd-dddddddddddd',
         '30303030-0303-0303-0303-030303030303',
         'e5555555-5555-5555-5555-555555555555',
         '99999999-9999-9999-9999-999999999999',
         1,
+        99.99,
         99.99
     );
 

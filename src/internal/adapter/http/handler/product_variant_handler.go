@@ -90,13 +90,15 @@ func (h *ProductVariantHandler) GetProductVariant(w http.ResponseWriter, r *http
 
 // ListProductVariants godoc
 // @Summary List all product variants for a product
-// @Description Get a paginated list of product variants for a specific product
+// @Description Get a paginated list of product variants for a specific product with sorting
 // @Tags product_variants
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Items per page" default(10)
+// @Param sort_by query string false "Sort by field (variant_name, created_at)" default("created_at")
+// @Param sort_order query string false "Sort order (asc, desc)" default("asc")
 // @Success 200 {object} dto.ProductVariantListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Router /products/{id}/variants [get]

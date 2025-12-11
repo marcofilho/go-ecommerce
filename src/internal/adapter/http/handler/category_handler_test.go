@@ -158,14 +158,15 @@ func TestCategoryHandler_ListCategories(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response struct {
-			Data     []dto.CategoryResponse `json:"data"`
-			Total    int                    `json:"total"`
-			Page     int                    `json:"page"`
-			PageSize int                    `json:"page_size"`
+			Data       []dto.CategoryResponse `json:"data"`
+			Pagination dto.Pagination         `json:"pagination"`
 		}
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Len(t, response.Data, 2)
-		assert.Equal(t, 2, response.Total)
+		assert.Equal(t, 2, response.Pagination.Total)
+		assert.Equal(t, 1, response.Pagination.Page)
+		assert.Equal(t, 10, response.Pagination.PageSize)
+		assert.Equal(t, 1, response.Pagination.TotalPages)
 
 		mockService.AssertExpectations(t)
 	})

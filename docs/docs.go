@@ -134,7 +134,7 @@ const docTemplate = `{
         },
         "/categories": {
             "get": {
-                "description": "Get a paginated list of categories",
+                "description": "Get all categories with pagination and sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -158,6 +158,20 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Page size",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"name\"",
+                        "description": "Sort by field (name, created_at)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"asc\"",
+                        "description": "Sort order (asc, desc)",
+                        "name": "sort_order",
                         "in": "query"
                     }
                 ],
@@ -234,7 +248,7 @@ const docTemplate = `{
         },
         "/orders": {
             "get": {
-                "description": "Get a paginated list of orders with optional filtering",
+                "description": "Get a paginated list of orders with optional filtering and sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -258,6 +272,20 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Items per page",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"created_at\"",
+                        "description": "Sort by field (created_at, total_price)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"desc\"",
+                        "description": "Sort order (asc, desc)",
+                        "name": "sort_order",
                         "in": "query"
                     },
                     {
@@ -585,7 +613,7 @@ const docTemplate = `{
         },
         "/products": {
             "get": {
-                "description": "Get a paginated list of products with optional filtering",
+                "description": "Get a paginated list of products with optional filtering and sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -609,6 +637,20 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Items per page",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"created_at\"",
+                        "description": "Sort by field (name, price, created_at)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"desc\"",
+                        "description": "Sort order (asc, desc)",
+                        "name": "sort_order",
                         "in": "query"
                     },
                     {
@@ -992,7 +1034,7 @@ const docTemplate = `{
         },
         "/products/{id}/variants": {
             "get": {
-                "description": "Get a paginated list of product variants for a specific product",
+                "description": "Get a paginated list of product variants for a specific product with sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -1023,6 +1065,20 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Items per page",
                         "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"created_at\"",
+                        "description": "Sort by field (variant_name, created_at)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"asc\"",
+                        "description": "Sort order (asc, desc)",
+                        "name": "sort_order",
                         "in": "query"
                     }
                 ],
@@ -1273,14 +1329,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.CategoryResponse"
                     }
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/dto.Pagination"
                 }
             }
         },
@@ -1368,14 +1418,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.OrderResponse"
                     }
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/dto.Pagination"
                 }
             }
         },
@@ -1411,6 +1455,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Pagination": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.ProductListResponse": {
             "type": "object",
             "properties": {
@@ -1420,14 +1481,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.ProductResponse"
                     }
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/dto.Pagination"
                 }
             }
         },
@@ -1499,14 +1554,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.ProductVariantResponse"
                     }
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/dto.Pagination"
                 }
             }
         },

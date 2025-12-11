@@ -1,11 +1,15 @@
 package dto
 
-// Generic paginated response
+type Pagination struct {
+	Page       int `json:"page"`
+	PageSize   int `json:"page_size"`
+	Total      int `json:"total"`
+	TotalPages int `json:"total_pages"`
+}
+
 type PaginatedResponse[T any] struct {
-	Data     []T `json:"data"`
-	Total    int `json:"total"`
-	Page     int `json:"page"`
-	PageSize int `json:"page_size"`
+	Data       []T        `json:"data"`
+	Pagination Pagination `json:"pagination"`
 }
 
 // Product DTOs
@@ -111,30 +115,8 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type ProductListResponse struct {
-	Data     []ProductResponse `json:"data"`
-	Total    int               `json:"total"`
-	Page     int               `json:"page"`
-	PageSize int               `json:"page_size"`
-}
-
-type OrderListResponse struct {
-	Data     []OrderResponse `json:"data"`
-	Total    int             `json:"total"`
-	Page     int             `json:"page"`
-	PageSize int             `json:"page_size"`
-}
-
-type ProductVariantListResponse struct {
-	Data     []ProductVariantResponse `json:"data"`
-	Total    int                      `json:"total"`
-	Page     int                      `json:"page"`
-	PageSize int                      `json:"page_size"`
-}
-
-type CategoryListResponse struct {
-	Data     []CategoryResponse `json:"data"`
-	Total    int                `json:"total"`
-	Page     int                `json:"page"`
-	PageSize int                `json:"page_size"`
-}
+// Type aliases for backward compatibility and cleaner Swagger docs
+type ProductListResponse = PaginatedResponse[ProductResponse]
+type OrderListResponse = PaginatedResponse[OrderResponse]
+type ProductVariantListResponse = PaginatedResponse[ProductVariantResponse]
+type CategoryListResponse = PaginatedResponse[CategoryResponse]

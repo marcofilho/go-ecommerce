@@ -27,12 +27,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.CategoryResponse'
         type: array
-      page:
-        type: integer
-      page_size:
-        type: integer
-      total:
-        type: integer
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
     type: object
   dto.CategoryRequest:
     properties:
@@ -90,12 +86,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.OrderResponse'
         type: array
-      page:
-        type: integer
-      page_size:
-        type: integer
-      total:
-        type: integer
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
     type: object
   dto.OrderResponse:
     properties:
@@ -118,18 +110,25 @@ definitions:
       updated_at:
         type: string
     type: object
-  dto.ProductListResponse:
+  dto.Pagination:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.ProductResponse'
-        type: array
       page:
         type: integer
       page_size:
         type: integer
       total:
         type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.ProductListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.ProductResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
     type: object
   dto.ProductRequest:
     properties:
@@ -177,12 +176,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.ProductVariantResponse'
         type: array
-      page:
-        type: integer
-      page_size:
-        type: integer
-      total:
-        type: integer
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
     type: object
   dto.ProductVariantRequest:
     properties:
@@ -404,7 +399,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a paginated list of categories
+      description: Get all categories with pagination and sorting
       parameters:
       - default: 1
         description: Page number
@@ -416,6 +411,16 @@ paths:
         in: query
         name: page_size
         type: integer
+      - default: '"name"'
+        description: Sort by field (name, created_at)
+        in: query
+        name: sort_by
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc, desc)
+        in: query
+        name: sort_order
+        type: string
       produces:
       - application/json
       responses:
@@ -469,7 +474,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a paginated list of orders with optional filtering
+      description: Get a paginated list of orders with optional filtering and sorting
       parameters:
       - default: 1
         description: Page number
@@ -481,6 +486,16 @@ paths:
         in: query
         name: page_size
         type: integer
+      - default: '"created_at"'
+        description: Sort by field (created_at, total_price)
+        in: query
+        name: sort_by
+        type: string
+      - default: '"desc"'
+        description: Sort order (asc, desc)
+        in: query
+        name: sort_order
+        type: string
       - description: Filter by status (pending, cancelled, completed)
         in: query
         name: status
@@ -702,7 +717,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a paginated list of products with optional filtering
+      description: Get a paginated list of products with optional filtering and sorting
       parameters:
       - default: 1
         description: Page number
@@ -714,6 +729,16 @@ paths:
         in: query
         name: page_size
         type: integer
+      - default: '"created_at"'
+        description: Sort by field (name, price, created_at)
+        in: query
+        name: sort_by
+        type: string
+      - default: '"desc"'
+        description: Sort order (asc, desc)
+        in: query
+        name: sort_order
+        type: string
       - default: true
         description: Filter products in stock only
         in: query
@@ -971,6 +996,7 @@ paths:
       consumes:
       - application/json
       description: Get a paginated list of product variants for a specific product
+        with sorting
       parameters:
       - description: Product ID
         in: path
@@ -987,6 +1013,16 @@ paths:
         in: query
         name: page_size
         type: integer
+      - default: '"created_at"'
+        description: Sort by field (variant_name, created_at)
+        in: query
+        name: sort_by
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc, desc)
+        in: query
+        name: sort_order
+        type: string
       produces:
       - application/json
       responses:

@@ -40,11 +40,19 @@ func ToProductListResponse(products []*entity.Product, total, page, pageSize int
 		productResponses = append(productResponses, ToProductResponse(product))
 	}
 
+	totalPages := (total + pageSize - 1) / pageSize
+	if total == 0 {
+		totalPages = 0
+	}
+
 	return PaginatedResponse[ProductResponse]{
-		Data:     productResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
+		Data: productResponses,
+		Pagination: Pagination{
+			Page:       page,
+			PageSize:   pageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	}
 }
 
@@ -77,11 +85,19 @@ func ToOrderListResponse(orders []*entity.Order, total, page, pageSize int) Pagi
 		orderResponses = append(orderResponses, ToOrderResponse(order))
 	}
 
+	totalPages := (total + pageSize - 1) / pageSize
+	if total == 0 {
+		totalPages = 0
+	}
+
 	return PaginatedResponse[OrderResponse]{
-		Data:     orderResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
+		Data: orderResponses,
+		Pagination: Pagination{
+			Page:       page,
+			PageSize:   pageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	}
 }
 
@@ -109,10 +125,18 @@ func ToProductVariantListResponse(variants []*entity.ProductVariant, total, page
 		variantResponses = append(variantResponses, ToProductVariantResponse(variant))
 	}
 
+	totalPages := (total + pageSize - 1) / pageSize
+	if total == 0 {
+		totalPages = 0
+	}
+
 	return PaginatedResponse[ProductVariantResponse]{
-		Data:     variantResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
+		Data: variantResponses,
+		Pagination: Pagination{
+			Page:       page,
+			PageSize:   pageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	}
 }

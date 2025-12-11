@@ -56,12 +56,14 @@ func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 
 // ListCategories godoc
 // @Summary List all categories
-// @Description Get a paginated list of categories
+// @Description Get all categories with pagination and sorting
 // @Tags categories
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(10)
+// @Param sort_by query string false "Sort by field (name, created_at)" default("name")
+// @Param sort_order query string false "Sort order (asc, desc)" default("asc")
 // @Success 200 {object} dto.CategoryListResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /categories [get]
@@ -90,11 +92,19 @@ func (h *CategoryHandler) ListCategories(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
+	totalPages := (total + pageSize - 1) / pageSize
+	if total == 0 {
+		totalPages = 0
+	}
+
 	response := dto.CategoryListResponse{
-		Data:     categoryResponses,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
+		Data: categoryResponses,
+		Pagination: dto.Pagination{
+			Page:       page,
+			PageSize:   pageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	}
 
 	respondJSON(w, http.StatusOK, response)

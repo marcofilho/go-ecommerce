@@ -78,12 +78,14 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 // ListProducts godoc
 // @Summary List all products
-// @Description Get a paginated list of products with optional filtering
+// @Description Get a paginated list of products with optional filtering and sorting
 // @Tags products
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Items per page" default(10)
+// @Param sort_by query string false "Sort by field (name, price, created_at)" default("created_at")
+// @Param sort_order query string false "Sort order (asc, desc)" default("desc")
 // @Param in_stock_only query bool false "Filter products in stock only" default(true)
 // @Success 200 {object} dto.ProductListResponse
 // @Failure 400 {object} dto.ErrorResponse
