@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/audit"
 )
 
 type ProductService interface {
@@ -17,13 +18,19 @@ type ProductService interface {
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 }
 
-type UseCase struct {
-	repo repository.ProductRepository
+type Services interface {
+	GetAuditService() audit.AuditService
 }
 
-func NewUseCase(repo repository.ProductRepository) *UseCase {
+type UseCase struct {
+	repo     repository.ProductRepository
+	services Services
+}
+
+func NewUseCase(repo repository.ProductRepository, services Services) *UseCase {
 	return &UseCase{
-		repo: repo,
+		repo:     repo,
+		services: services,
 	}
 }
 
@@ -45,6 +52,9 @@ func (uc *UseCase) CreateProduct(ctx context.Context, name, description string, 
 	if err := uc.repo.Create(ctx, product); err != nil {
 		return nil, err
 	}
+
+	// Log product creation
+	uc.services.GetAuditService().LogChange(ctx, nil, "CREATE", "Product", product.ID, nil, product)
 
 	return product, nil
 }
@@ -70,6 +80,9 @@ func (uc *UseCase) UpdateProduct(ctx context.Context, id uuid.UUID, name, descri
 		return nil, err
 	}
 
+	// Store original state for audit
+	original := *product
+
 	product.Name = name
 	product.Description = description
 	product.Price = price
@@ -84,9 +97,25 @@ func (uc *UseCase) UpdateProduct(ctx context.Context, id uuid.UUID, name, descri
 		return nil, err
 	}
 
+	// Log product update
+	uc.services.GetAuditService().LogChange(ctx, nil, "UPDATE", "Product", product.ID, &original, product)
+
 	return product, nil
 }
 
 func (uc *UseCase) DeleteProduct(ctx context.Context, id uuid.UUID) error {
-	return uc.repo.Delete(ctx, id)
+	// Get product before deletion for audit
+	product, err := uc.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := uc.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	// Log product deletion
+	uc.services.GetAuditService().LogChange(ctx, nil, "DELETE", "Product", id, product, nil)
+
+	return nil
 }

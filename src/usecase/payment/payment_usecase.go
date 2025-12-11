@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/audit"
 )
 
 type PaymentService interface {
@@ -17,18 +18,25 @@ type PaymentService interface {
 	GetWebhookHistory(ctx context.Context, orderID string) ([]entity.WebhookLog, error)
 }
 
+type Services interface {
+	GetAuditService() audit.AuditService
+}
+
 type PaymentUseCase struct {
 	orderRepo   repository.OrderRepository
 	webhookRepo repository.WebhookRepository
+	services    Services
 }
 
 func NewPaymentUseCase(
 	orderRepo repository.OrderRepository,
 	webhookRepo repository.WebhookRepository,
+	services Services,
 ) *PaymentUseCase {
 	return &PaymentUseCase{
 		orderRepo:   orderRepo,
 		webhookRepo: webhookRepo,
+		services:    services,
 	}
 }
 
@@ -104,6 +112,11 @@ func (uc *PaymentUseCase) ProcessWebhook(ctx context.Context, req *entity.Paymen
 	if err := uc.webhookRepo.Update(ctx, webhookLog); err != nil {
 		fmt.Printf("Failed to update webhook log status: %v\n", err)
 	}
+
+	// Log payment webhook update
+	uc.services.GetAuditService().LogChange(ctx, nil, "PAYMENT_WEBHOOK", "Order", orderID,
+		map[string]interface{}{"payment_status": entity.Unpaid, "status": entity.Pending},
+		map[string]interface{}{"payment_status": req.PaymentStatus, "status": order.Status, "transaction_id": req.TransactionID})
 
 	return nil
 }

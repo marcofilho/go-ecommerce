@@ -13,6 +13,7 @@ type Category struct {
 	Name      string    `gorm:"type:varchar(100);unique;not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	// Many-to-many relationship with products
 	Products []Product `gorm:"many2many:product_categories;"`

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	mockServices "github.com/marcofilho/go-ecommerce/src/internal/testing"
 )
 
 type mockProductRepository struct {
@@ -86,7 +87,7 @@ func (m *mockProductRepository) Delete(ctx context.Context, id uuid.UUID) error 
 
 func TestCreateProduct_Success(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	product, err := uc.CreateProduct(context.Background(), "Laptop", "Gaming", 999.99, 10)
 	if err != nil {
@@ -99,7 +100,7 @@ func TestCreateProduct_Success(t *testing.T) {
 
 func TestCreateProduct_ValidationError(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	_, err := uc.CreateProduct(context.Background(), "", "Desc", 100, 10)
 	if err == nil {
@@ -109,7 +110,7 @@ func TestCreateProduct_ValidationError(t *testing.T) {
 
 func TestGetProduct_Success(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	repo.products[id] = &entity.Product{ID: id, Name: "Test"}
@@ -125,7 +126,7 @@ func TestGetProduct_Success(t *testing.T) {
 
 func TestListProducts_Success(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	repo.getAllResult = []*entity.Product{
 		{ID: uuid.New(), Name: "P1", Quantity: 5},
@@ -147,7 +148,7 @@ func TestListProducts_Success(t *testing.T) {
 
 func TestUpdateProduct_Success(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	repo.products[id] = &entity.Product{ID: id, Name: "Old", Price: 100, Quantity: 5}
@@ -163,7 +164,7 @@ func TestUpdateProduct_Success(t *testing.T) {
 
 func TestDeleteProduct_Success(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	repo.products[id] = &entity.Product{ID: id}
@@ -180,7 +181,7 @@ func TestDeleteProduct_Success(t *testing.T) {
 func TestCreateProduct_RepositoryError(t *testing.T) {
 	repo := newMockRepo()
 	repo.createErr = errors.New("database error")
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	_, err := uc.CreateProduct(context.Background(), "Laptop", "Gaming", 999.99, 10)
 	if err == nil {
@@ -190,7 +191,7 @@ func TestCreateProduct_RepositoryError(t *testing.T) {
 
 func TestCreateProduct_ZeroQuantityError(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	_, err := uc.CreateProduct(context.Background(), "Laptop", "Gaming", 999.99, 0)
 	if err == nil {
@@ -200,7 +201,7 @@ func TestCreateProduct_ZeroQuantityError(t *testing.T) {
 
 func TestListProducts_PaginationDefaults(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	// Test page < 1 defaults to 1
 	_, _, err := uc.ListProducts(context.Background(), 0, 10, false)
@@ -223,7 +224,7 @@ func TestListProducts_PaginationDefaults(t *testing.T) {
 
 func TestUpdateProduct_NotFound(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	_, err := uc.UpdateProduct(context.Background(), id, "New", "Updated", 200, 10)
@@ -234,7 +235,7 @@ func TestUpdateProduct_NotFound(t *testing.T) {
 
 func TestUpdateProduct_ValidationError(t *testing.T) {
 	repo := newMockRepo()
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	repo.products[id] = &entity.Product{ID: id, Name: "Old", Price: 100, Quantity: 5}
@@ -248,7 +249,7 @@ func TestUpdateProduct_ValidationError(t *testing.T) {
 func TestUpdateProduct_RepositoryError(t *testing.T) {
 	repo := newMockRepo()
 	repo.updateErr = errors.New("database error")
-	uc := NewUseCase(repo)
+	uc := NewUseCase(repo, &mockServices.MockServices{})
 
 	id := uuid.New()
 	repo.products[id] = &entity.Product{ID: id, Name: "Old", Price: 100, Quantity: 5}

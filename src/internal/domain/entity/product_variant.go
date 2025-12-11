@@ -17,6 +17,7 @@ type ProductVariant struct {
 	Quantity       int       `gorm:"not null"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	DeletedAt      gorm.DeletedAt `gorm:"index"`
 
 	Product *Product `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	mockServices "github.com/marcofilho/go-ecommerce/src/internal/testing"
 	"github.com/marcofilho/go-ecommerce/src/usecase/order"
 )
 
@@ -385,7 +386,7 @@ func TestOrderHandler_UpdateOrderStatus_UseCaseError(t *testing.T) {
 func newOrderUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) *order.UseCase {
 	// Create a mock variant repo for testing
 	variantRepo := &mockVariantRepo{}
-	return order.NewUseCase(orderRepo, productRepo, variantRepo)
+	return order.NewUseCase(orderRepo, productRepo, variantRepo, &mockServices.MockServices{})
 }
 
 // Mock variant repository for testing

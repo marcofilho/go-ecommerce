@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/audit"
 )
 
 type CreateOrderItem struct {
@@ -23,17 +24,23 @@ type OrderService interface {
 	UpdateOrderStatus(ctx context.Context, id uuid.UUID, newStatus entity.OrderStatus) (*entity.Order, error)
 }
 
+type Services interface {
+	GetAuditService() audit.AuditService
+}
+
 type UseCase struct {
 	orderRepo   repository.OrderRepository
 	productRepo repository.ProductRepository
 	variantRepo repository.ProductVariantRepository
+	services    Services
 }
 
-func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, variantRepo repository.ProductVariantRepository) *UseCase {
+func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, variantRepo repository.ProductVariantRepository, services Services) *UseCase {
 	return &UseCase{
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
 		variantRepo: variantRepo,
+		services:    services,
 	}
 }
 
@@ -177,6 +184,9 @@ func (uc *UseCase) UpdateOrderStatus(ctx context.Context, id uuid.UUID, newStatu
 		return nil, err
 	}
 
+	// Store original state for audit
+	originalStatus := order.Status
+
 	if err := order.UpdateStatus(newStatus); err != nil {
 		return nil, err
 	}
@@ -184,6 +194,11 @@ func (uc *UseCase) UpdateOrderStatus(ctx context.Context, id uuid.UUID, newStatu
 	if err := uc.orderRepo.Update(ctx, order); err != nil {
 		return nil, err
 	}
+
+	// Log order status update
+	uc.services.GetAuditService().LogChange(ctx, nil, "UPDATE_STATUS", "Order", order.ID,
+		map[string]interface{}{"status": originalStatus},
+		map[string]interface{}{"status": newStatus})
 
 	return order, nil
 }

@@ -16,6 +16,7 @@ type Product struct {
 	Quantity    int       `gorm:"not null"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 
 	// Relations (not stored in DB, loaded via GORM preload)
 	Variants   []ProductVariant `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`

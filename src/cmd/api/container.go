@@ -7,6 +7,7 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/middleware"
 	"github.com/marcofilho/go-ecommerce/src/internal/config"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/audit"
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/auth"
 	infraRepo "github.com/marcofilho/go-ecommerce/src/internal/infrastructure/repository"
 	authUseCase "github.com/marcofilho/go-ecommerce/src/usecase/auth"
@@ -16,6 +17,15 @@ import (
 	productUseCase "github.com/marcofilho/go-ecommerce/src/usecase/product"
 	productVariantUseCase "github.com/marcofilho/go-ecommerce/src/usecase/product_variant"
 )
+
+// Services holds common infrastructure services
+type Services struct {
+	audit audit.AuditService
+}
+
+func (s *Services) GetAuditService() audit.AuditService {
+	return s.audit
+}
 
 // Container holds all application dependencies
 type Container struct {
@@ -29,9 +39,11 @@ type Container struct {
 	OrderRepo          repository.OrderRepository
 	WebhookRepo        repository.WebhookRepository
 	UserRepo           repository.UserRepository
+	AuditLogRepo       repository.AuditLogRepository
 
 	// Infrastructure
 	JWTProvider *auth.JWTProvider
+	Services    *Services
 
 	// Use Cases
 	ProductUseCase        *productUseCase.UseCase
@@ -66,16 +78,20 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	c.OrderRepo = infraRepo.NewOrderRepositoryPostgres(db)
 	c.WebhookRepo = infraRepo.NewWebhookRepository(db)
 	c.UserRepo = infraRepo.NewUserRepository(db)
+	c.AuditLogRepo = infraRepo.NewAuditLogRepository(db)
 
-	// Infrastructure
+	// Infrastructure Services
 	c.JWTProvider = auth.NewJWTProvider(cfg.JWT.Secret, cfg.JWT.ExpirationHours)
+	c.Services = &Services{
+		audit: audit.NewAuditService(c.AuditLogRepo),
+	}
 
 	// Use Cases
-	c.ProductUseCase = productUseCase.NewUseCase(c.ProductRepo)
+	c.ProductUseCase = productUseCase.NewUseCase(c.ProductRepo, c.Services)
 	c.ProductVariantUseCase = productVariantUseCase.NewUseCase(c.ProductVariantRepo)
 	c.CategoryUseCase = categoryUseCase.NewUseCase(c.CategoryRepo)
-	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo, c.ProductVariantRepo)
-	c.PaymentUseCase = paymentUseCase.NewPaymentUseCase(c.OrderRepo, c.WebhookRepo)
+	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo, c.ProductVariantRepo, c.Services)
+	c.PaymentUseCase = paymentUseCase.NewPaymentUseCase(c.OrderRepo, c.WebhookRepo, c.Services)
 	c.AuthUseCase = authUseCase.NewUseCase(c.UserRepo, c.JWTProvider)
 
 	// Handlers

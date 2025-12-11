@@ -1,28 +1,29 @@
 package handler
 
 import (
-"bytes"
-"context"
-"encoding/json"
-"errors"
-"net/http"
-"net/http/httptest"
-"testing"
-"time"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
 
-"github.com/google/uuid"
-"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
-"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
-"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
-"github.com/marcofilho/go-ecommerce/src/usecase/product"
+	"github.com/google/uuid"
+	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
+	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
+	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
+	mockServices "github.com/marcofilho/go-ecommerce/src/internal/testing"
+	"github.com/marcofilho/go-ecommerce/src/usecase/product"
 )
 
 type mockProductRepo struct {
-	createFunc func(ctx context.Context, product *entity.Product) error
+	createFunc  func(ctx context.Context, product *entity.Product) error
 	getByIDFunc func(ctx context.Context, id uuid.UUID) (*entity.Product, error)
-	getAllFunc func(ctx context.Context, page, pageSize int, inStockOnly bool) ([]*entity.Product, int, error)
-	updateFunc func(ctx context.Context, product *entity.Product) error
-	deleteFunc func(ctx context.Context, id uuid.UUID) error
+	getAllFunc  func(ctx context.Context, page, pageSize int, inStockOnly bool) ([]*entity.Product, int, error)
+	updateFunc  func(ctx context.Context, product *entity.Product) error
+	deleteFunc  func(ctx context.Context, id uuid.UUID) error
 }
 
 func (m *mockProductRepo) Create(ctx context.Context, prod *entity.Product) error {
@@ -68,8 +69,8 @@ func TestProductHandler_CreateProduct_Success(t *testing.T) {
 			return nil
 		},
 	}
-	
-	uc := NewProductHandler(product.NewUseCase(mockRepo))
+
+	uc := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	reqBody := dto.ProductRequest{
 		Name:        "Laptop",
@@ -97,7 +98,7 @@ func TestProductHandler_CreateProduct_Success(t *testing.T) {
 
 func TestProductHandler_CreateProduct_InvalidJSON(t *testing.T) {
 	mockRepo := &mockProductRepo{}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer([]byte("invalid json")))
 	w := httptest.NewRecorder()
@@ -115,7 +116,7 @@ func TestProductHandler_CreateProduct_UseCaseError(t *testing.T) {
 			return errors.New("validation error")
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	reqBody := dto.ProductRequest{Name: "", Price: -10, Quantity: 0}
 	body, _ := json.Marshal(reqBody)
@@ -135,16 +136,16 @@ func TestProductHandler_GetProduct_Success(t *testing.T) {
 	mockRepo := &mockProductRepo{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
 			return &entity.Product{
-				ID:       id,
-				Name:     "Laptop",
-				Price:    999.99,
-				Quantity: 10,
+				ID:        id,
+				Name:      "Laptop",
+				Price:     999.99,
+				Quantity:  10,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			}, nil
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodGet, "/products/"+productID.String(), nil)
 	req.SetPathValue("id", productID.String())
@@ -165,7 +166,7 @@ func TestProductHandler_GetProduct_Success(t *testing.T) {
 
 func TestProductHandler_GetProduct_InvalidID(t *testing.T) {
 	mockRepo := &mockProductRepo{}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodGet, "/products/invalid-id", nil)
 	req.SetPathValue("id", "invalid-id")
@@ -184,7 +185,7 @@ func TestProductHandler_GetProduct_NotFound(t *testing.T) {
 			return nil, errors.New("not found")
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	productID := uuid.New()
 	req := httptest.NewRequest(http.MethodGet, "/products/"+productID.String(), nil)
@@ -207,7 +208,7 @@ func TestProductHandler_ListProducts_Success(t *testing.T) {
 			}, 2, nil
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodGet, "/products?page=1&page_size=10&in_stock_only=true", nil)
 	w := httptest.NewRecorder()
@@ -234,7 +235,7 @@ func TestProductHandler_ListProducts_InStockOnlyFalse(t *testing.T) {
 			return []*entity.Product{}, 0, nil
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodGet, "/products?in_stock_only=false", nil)
 	w := httptest.NewRecorder()
@@ -252,7 +253,7 @@ func TestProductHandler_ListProducts_UseCaseError(t *testing.T) {
 			return nil, 0, errors.New("database error")
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodGet, "/products", nil)
 	w := httptest.NewRecorder()
@@ -269,10 +270,10 @@ func TestProductHandler_UpdateProduct_Success(t *testing.T) {
 	mockRepo := &mockProductRepo{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
 			return &entity.Product{
-				ID:       id,
-				Name:     "Old",
-				Price:    100,
-				Quantity: 5,
+				ID:        id,
+				Name:      "Old",
+				Price:     100,
+				Quantity:  5,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			}, nil
@@ -281,7 +282,7 @@ func TestProductHandler_UpdateProduct_Success(t *testing.T) {
 			return nil
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	reqBody := dto.ProductRequest{
 		Name:        "Updated Laptop",
@@ -310,7 +311,7 @@ func TestProductHandler_UpdateProduct_Success(t *testing.T) {
 
 func TestProductHandler_UpdateProduct_InvalidID(t *testing.T) {
 	mockRepo := &mockProductRepo{}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	reqBody := dto.ProductRequest{Name: "Updated"}
 	body, _ := json.Marshal(reqBody)
@@ -329,7 +330,7 @@ func TestProductHandler_UpdateProduct_InvalidID(t *testing.T) {
 func TestProductHandler_UpdateProduct_InvalidJSON(t *testing.T) {
 	productID := uuid.New()
 	mockRepo := &mockProductRepo{}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodPut, "/products/"+productID.String(), bytes.NewBuffer([]byte("invalid")))
 	req.SetPathValue("id", productID.String())
@@ -349,7 +350,7 @@ func TestProductHandler_UpdateProduct_UseCaseError(t *testing.T) {
 			return nil, errors.New("not found")
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	reqBody := dto.ProductRequest{Name: "Test"}
 	body, _ := json.Marshal(reqBody)
@@ -368,11 +369,14 @@ func TestProductHandler_UpdateProduct_UseCaseError(t *testing.T) {
 func TestProductHandler_DeleteProduct_Success(t *testing.T) {
 	productID := uuid.New()
 	mockRepo := &mockProductRepo{
+		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+			return &entity.Product{ID: productID, Name: "Test Product", Price: 100}, nil
+		},
 		deleteFunc: func(ctx context.Context, id uuid.UUID) error {
 			return nil
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodDelete, "/products/"+productID.String(), nil)
 	req.SetPathValue("id", productID.String())
@@ -387,7 +391,7 @@ func TestProductHandler_DeleteProduct_Success(t *testing.T) {
 
 func TestProductHandler_DeleteProduct_InvalidID(t *testing.T) {
 	mockRepo := &mockProductRepo{}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodDelete, "/products/invalid-id", nil)
 	req.SetPathValue("id", "invalid-id")
@@ -407,7 +411,7 @@ func TestProductHandler_DeleteProduct_NotFound(t *testing.T) {
 			return errors.New("not found")
 		},
 	}
-	handler := NewProductHandler(product.NewUseCase(mockRepo))
+	handler := NewProductHandler(product.NewUseCase(mockRepo, &mockServices.MockServices{}))
 
 	req := httptest.NewRequest(http.MethodDelete, "/products/"+productID.String(), nil)
 	req.SetPathValue("id", productID.String())
