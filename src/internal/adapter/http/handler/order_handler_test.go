@@ -386,12 +386,19 @@ func TestOrderHandler_UpdateOrderStatus_UseCaseError(t *testing.T) {
 func newOrderUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) *order.UseCase {
 	// Create a mock variant repo and discount repo for testing
 	variantRepo := &mockVariantRepo{}
-	discountRepo := &mockDiscountRepo{}
+	discountRepo := &mockDiscountRepo{discounts: make(map[string]*entity.Discount)}
+	return order.NewUseCase(orderRepo, productRepo, variantRepo, discountRepo, &mockServices.MockServices{})
+}
+
+func newOrderUseCaseWithDiscount(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, discountRepo *mockDiscountRepo) *order.UseCase {
+	variantRepo := &mockVariantRepo{}
 	return order.NewUseCase(orderRepo, productRepo, variantRepo, discountRepo, &mockServices.MockServices{})
 }
 
 // Mock discount repository for testing
-type mockDiscountRepo struct{}
+type mockDiscountRepo struct {
+	discounts map[string]*entity.Discount
+}
 
 func (m *mockDiscountRepo) Create(ctx context.Context, discount *entity.Discount) error {
 	return nil
@@ -406,6 +413,9 @@ func (m *mockDiscountRepo) GetByID(ctx context.Context, id uuid.UUID) (*entity.D
 }
 
 func (m *mockDiscountRepo) GetByPromoCode(ctx context.Context, promoCode string) (*entity.Discount, error) {
+	if d, ok := m.discounts[promoCode]; ok {
+		return d, nil
+	}
 	return nil, errors.New("not found")
 }
 
@@ -434,4 +444,160 @@ func (m *mockVariantRepo) Update(ctx context.Context, variant *entity.ProductVar
 
 func (m *mockVariantRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
+}
+
+func TestOrderHandler_CreateOrder_WithValidPromoCode(t *testing.T) {
+	productID := uuid.New()
+	mockOrderRepo := &mockOrderRepo{}
+	mockProductRepo := &mockProductRepo{
+		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+			return &entity.Product{
+				ID: id, Name: "Laptop", Price: 100.00, Quantity: 10,
+				CreatedAt: time.Now(), UpdatedAt: time.Now(),
+			}, nil
+		},
+		updateFunc: func(ctx context.Context, product *entity.Product) error {
+			return nil
+		},
+	}
+
+	mockDiscountRepo := &mockDiscountRepo{
+		discounts: map[string]*entity.Discount{
+			"SAVE20": {
+				ID:           uuid.New(),
+				PromoCode:    "SAVE20",
+				DiscountType: entity.Percentage,
+				Value:        20.0,
+				Active:       true,
+			},
+		},
+	}
+
+	handler := NewOrderHandler(newOrderUseCaseWithDiscount(mockOrderRepo, mockProductRepo, mockDiscountRepo))
+
+	reqBody := dto.CreateOrderRequest{
+		CustomerID: 123,
+		Products: []dto.OrderItemRequest{
+			{ProductID: productID.String(), Quantity: 2},
+		},
+		PromoCode: "SAVE20",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest(http.MethodPost, "/orders", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+
+	handler.CreateOrder(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("expected status 201, got %d", w.Code)
+	}
+
+	// Verify response contains discounted amount
+	var response dto.OrderResponse
+	json.NewDecoder(w.Body).Decode(&response)
+
+	// Original: 100 * 2 = 200
+	// With 20% discount: 200 * 0.80 = 160
+	if response.TotalPrice != 160.0 {
+		t.Errorf("expected total price 160.0, got %.2f", response.TotalPrice)
+	}
+}
+
+func TestOrderHandler_CreateOrder_WithInvalidPromoCode(t *testing.T) {
+	productID := uuid.New()
+	mockOrderRepo := &mockOrderRepo{}
+	mockProductRepo := &mockProductRepo{
+		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+			return &entity.Product{
+				ID: id, Name: "Laptop", Price: 100.00, Quantity: 10,
+				CreatedAt: time.Now(), UpdatedAt: time.Now(),
+			}, nil
+		},
+		updateFunc: func(ctx context.Context, product *entity.Product) error {
+			return nil
+		},
+	}
+
+	mockDiscountRepo := &mockDiscountRepo{
+		discounts: make(map[string]*entity.Discount),
+	}
+
+	handler := NewOrderHandler(newOrderUseCaseWithDiscount(mockOrderRepo, mockProductRepo, mockDiscountRepo))
+
+	reqBody := dto.CreateOrderRequest{
+		CustomerID: 123,
+		Products: []dto.OrderItemRequest{
+			{ProductID: productID.String(), Quantity: 2},
+		},
+		PromoCode: "INVALID",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest(http.MethodPost, "/orders", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+
+	handler.CreateOrder(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}
+
+func TestOrderHandler_CreateOrder_WithAmountDiscount(t *testing.T) {
+	productID := uuid.New()
+	mockOrderRepo := &mockOrderRepo{}
+	mockProductRepo := &mockProductRepo{
+		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+			return &entity.Product{
+				ID: id, Name: "Laptop", Price: 100.00, Quantity: 10,
+				CreatedAt: time.Now(), UpdatedAt: time.Now(),
+			}, nil
+		},
+		updateFunc: func(ctx context.Context, product *entity.Product) error {
+			return nil
+		},
+	}
+
+	mockDiscountRepo := &mockDiscountRepo{
+		discounts: map[string]*entity.Discount{
+			"SAVE15": {
+				ID:           uuid.New(),
+				PromoCode:    "SAVE15",
+				DiscountType: entity.Amount,
+				Value:        15.0,
+				Active:       true,
+			},
+		},
+	}
+
+	handler := NewOrderHandler(newOrderUseCaseWithDiscount(mockOrderRepo, mockProductRepo, mockDiscountRepo))
+
+	reqBody := dto.CreateOrderRequest{
+		CustomerID: 123,
+		Products: []dto.OrderItemRequest{
+			{ProductID: productID.String(), Quantity: 1},
+		},
+		PromoCode: "SAVE15",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest(http.MethodPost, "/orders", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+
+	handler.CreateOrder(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("expected status 201, got %d", w.Code)
+	}
+
+	// Verify response contains discounted amount
+	var response dto.OrderResponse
+	json.NewDecoder(w.Body).Decode(&response)
+
+	// Original: 100
+	// With $15 discount: 100 - 15 = 85
+	if response.TotalPrice != 85.0 {
+		t.Errorf("expected total price 85.0, got %.2f", response.TotalPrice)
+	}
 }
