@@ -36,23 +36,7 @@ func (d *Discount) Validate() error {
 	return nil
 }
 
-func (d *Discount) IsActive() bool {
-	return d.Active
-}
-
-func (d *Discount) Activate() {
-	d.Active = true
-}
-
-func (d *Discount) Deactivate() {
-	d.Active = false
-}
-
 func (d *Discount) ApplyDiscount(total float64) (float64, error) {
-	if !d.Active {
-		return 0, errors.New("discount is not active")
-	}
-
 	switch d.DiscountType {
 	case Percentage:
 		discountAmount := total * (d.Value / 100)

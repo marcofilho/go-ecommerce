@@ -134,11 +134,30 @@ func (m *mockVariantRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
+type mockDiscountRepo struct{}
+
+func (m *mockDiscountRepo) Create(ctx context.Context, discount *entity.Discount) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) Update(ctx context.Context, discount *entity.Discount) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Discount, error) {
+	return nil, errors.New("not found")
+}
+
+func (m *mockDiscountRepo) GetByPromoCode(ctx context.Context, promoCode string) (*entity.Discount, error) {
+	return nil, errors.New("not found")
+}
+
 func TestCreateOrder_Success(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
 	variantRepo := newMockVariantRepo()
-	uc := NewUseCase(orderRepo, productRepo, variantRepo, &mockServices.MockServices{})
+	discountRepo := &mockDiscountRepo{}
+	uc := NewUseCase(orderRepo, productRepo, variantRepo, discountRepo, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -146,7 +165,7 @@ func TestCreateOrder_Success(t *testing.T) {
 	}
 
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 2}}
-	order, err := uc.CreateOrder(context.Background(), 123, items)
+	order, err := uc.CreateOrder(context.Background(), 123, items, "")
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -159,9 +178,9 @@ func TestCreateOrder_Success(t *testing.T) {
 func TestCreateOrder_NoItems(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
-	_, err := uc.CreateOrder(context.Background(), 123, []CreateOrderItem{})
+	_, err := uc.CreateOrder(context.Background(), 123, []CreateOrderItem{}, "")
 	if err == nil {
 		t.Error("expected error for empty items")
 	}
@@ -170,7 +189,7 @@ func TestCreateOrder_NoItems(t *testing.T) {
 func TestCreateOrder_InsufficientStock(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -178,7 +197,7 @@ func TestCreateOrder_InsufficientStock(t *testing.T) {
 	}
 
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 10}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 
 	if err == nil {
 		t.Error("expected error for insufficient stock")
@@ -188,7 +207,7 @@ func TestCreateOrder_InsufficientStock(t *testing.T) {
 func TestGetOrder_Success(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	oid := uuid.New()
 	orderRepo.orders[oid] = &entity.Order{ID: oid, CustomerID: 123}
@@ -205,7 +224,7 @@ func TestGetOrder_Success(t *testing.T) {
 func TestListOrders_Success(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	orderRepo.orders[uuid.New()] = &entity.Order{CustomerID: 1}
 	orderRepo.orders[uuid.New()] = &entity.Order{CustomerID: 2}
@@ -225,7 +244,7 @@ func TestListOrders_Success(t *testing.T) {
 func TestUpdateOrderStatus_Success(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	oid := uuid.New()
 	orderRepo.orders[oid] = &entity.Order{
@@ -244,7 +263,7 @@ func TestUpdateOrderStatus_Success(t *testing.T) {
 func TestUpdateOrderStatus_InvalidTransition(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	oid := uuid.New()
 	orderRepo.orders[oid] = &entity.Order{
@@ -260,15 +279,15 @@ func TestUpdateOrderStatus_InvalidTransition(t *testing.T) {
 func TestCreateOrder_InvalidCustomerID(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	items := []CreateOrderItem{{ProductID: uuid.New(), Quantity: 1}}
-	_, err := uc.CreateOrder(context.Background(), 0, items)
+	_, err := uc.CreateOrder(context.Background(), 0, items, "")
 	if err == nil {
 		t.Error("expected error for invalid customer ID")
 	}
 
-	_, err = uc.CreateOrder(context.Background(), -1, items)
+	_, err = uc.CreateOrder(context.Background(), -1, items, "")
 	if err == nil {
 		t.Error("expected error for negative customer ID")
 	}
@@ -277,10 +296,10 @@ func TestCreateOrder_InvalidCustomerID(t *testing.T) {
 func TestCreateOrder_ProductNotFound(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	items := []CreateOrderItem{{ProductID: uuid.New(), Quantity: 1}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err == nil {
 		t.Error("expected error for product not found")
 	}
@@ -290,7 +309,7 @@ func TestCreateOrder_ProductUpdateError(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
 	productRepo.updateErr = errors.New("update failed")
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -298,7 +317,7 @@ func TestCreateOrder_ProductUpdateError(t *testing.T) {
 	}
 
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 2}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err == nil {
 		t.Error("expected error from product update")
 	}
@@ -308,7 +327,7 @@ func TestCreateOrder_OrderCreateError(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	orderRepo.createErr = errors.New("create failed")
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -316,7 +335,7 @@ func TestCreateOrder_OrderCreateError(t *testing.T) {
 	}
 
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 2}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err == nil {
 		t.Error("expected error from order create")
 	}
@@ -325,7 +344,7 @@ func TestCreateOrder_OrderCreateError(t *testing.T) {
 func TestListOrders_PaginationDefaults(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	// Test page < 1 defaults to 1
 	_, _, err := uc.ListOrders(context.Background(), 0, 10, nil, nil)
@@ -349,7 +368,7 @@ func TestListOrders_PaginationDefaults(t *testing.T) {
 func TestUpdateOrderStatus_NotFound(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	_, err := uc.UpdateOrderStatus(context.Background(), uuid.New(), entity.Completed)
 	if err == nil {
@@ -361,7 +380,7 @@ func TestUpdateOrderStatus_RepositoryError(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	orderRepo.updateErr = errors.New("update failed")
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	oid := uuid.New()
 	orderRepo.orders[oid] = &entity.Order{
@@ -377,7 +396,7 @@ func TestUpdateOrderStatus_RepositoryError(t *testing.T) {
 func TestCreateOrder_InvalidOrderItem(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -386,7 +405,7 @@ func TestCreateOrder_InvalidOrderItem(t *testing.T) {
 
 	// Negative quantity should fail order item validation
 	items := []CreateOrderItem{{ProductID: pid, Quantity: -1}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err == nil {
 		t.Error("expected error for invalid order item")
 	}
@@ -395,7 +414,7 @@ func TestCreateOrder_InvalidOrderItem(t *testing.T) {
 func TestCreateOrder_DecreaseStockError(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -404,7 +423,7 @@ func TestCreateOrder_DecreaseStockError(t *testing.T) {
 
 	// Request exactly available amount - should succeed
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 5}}
-	order, err := uc.CreateOrder(context.Background(), 123, items)
+	order, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err != nil {
 		t.Fatalf("expected no error for valid order, got %v", err)
 	}
@@ -416,7 +435,7 @@ func TestCreateOrder_DecreaseStockError(t *testing.T) {
 func TestCreateOrder_ZeroQuantityItem(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -425,7 +444,7 @@ func TestCreateOrder_ZeroQuantityItem(t *testing.T) {
 
 	// Zero quantity should fail validation
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 0}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	if err == nil {
 		t.Error("expected error for zero quantity item")
 	}
@@ -434,7 +453,7 @@ func TestCreateOrder_ZeroQuantityItem(t *testing.T) {
 func TestCreateOrder_NilProductID(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()
-	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockServices.MockServices{})
+	uc := NewUseCase(orderRepo, productRepo, newMockVariantRepo(), &mockDiscountRepo{}, &mockServices.MockServices{})
 
 	pid := uuid.New()
 	productRepo.products[pid] = &entity.Product{
@@ -443,7 +462,7 @@ func TestCreateOrder_NilProductID(t *testing.T) {
 
 	// This should pass product lookup but could fail other validations
 	items := []CreateOrderItem{{ProductID: pid, Quantity: 1}}
-	_, err := uc.CreateOrder(context.Background(), 123, items)
+	_, err := uc.CreateOrder(context.Background(), 123, items, "")
 	// May or may not error depending on validation logic
 	_ = err
 }

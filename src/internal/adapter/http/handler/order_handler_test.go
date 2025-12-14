@@ -384,9 +384,29 @@ func TestOrderHandler_UpdateOrderStatus_UseCaseError(t *testing.T) {
 }
 
 func newOrderUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) *order.UseCase {
-	// Create a mock variant repo for testing
+	// Create a mock variant repo and discount repo for testing
 	variantRepo := &mockVariantRepo{}
-	return order.NewUseCase(orderRepo, productRepo, variantRepo, &mockServices.MockServices{})
+	discountRepo := &mockDiscountRepo{}
+	return order.NewUseCase(orderRepo, productRepo, variantRepo, discountRepo, &mockServices.MockServices{})
+}
+
+// Mock discount repository for testing
+type mockDiscountRepo struct{}
+
+func (m *mockDiscountRepo) Create(ctx context.Context, discount *entity.Discount) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) Update(ctx context.Context, discount *entity.Discount) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Discount, error) {
+	return nil, errors.New("not found")
+}
+
+func (m *mockDiscountRepo) GetByPromoCode(ctx context.Context, promoCode string) (*entity.Discount, error) {
+	return nil, errors.New("not found")
 }
 
 // Mock variant repository for testing

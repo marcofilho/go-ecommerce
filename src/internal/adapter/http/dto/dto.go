@@ -36,6 +36,7 @@ type ProductResponse struct {
 type CreateOrderRequest struct {
 	CustomerID int                `json:"customer_id" example:"123"`
 	Products   []OrderItemRequest `json:"products"`
+	PromoCode  string             `json:"promo_code,omitempty" example:"SUMMER2024"` // Optional promo code
 }
 
 type OrderItemRequest struct {

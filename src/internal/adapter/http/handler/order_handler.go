@@ -64,7 +64,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		products = append(products, orderItem)
 	}
 
-	createdOrder, err := h.useCase.CreateOrder(r.Context(), req.CustomerID, products)
+	createdOrder, err := h.useCase.CreateOrder(r.Context(), req.CustomerID, products, req.PromoCode)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return

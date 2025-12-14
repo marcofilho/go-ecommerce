@@ -58,12 +58,10 @@ func (o *Order) Validate() error {
 }
 
 func (o *Order) CalculateTotal() {
-	total := 0.0
+	o.TotalPrice = 0
 	for _, item := range o.Products {
-		total += item.Subtotal()
+		o.TotalPrice += item.Subtotal()
 	}
-
-	o.TotalPrice = total
 }
 
 func (o *Order) CanTransitionTo(newStatus OrderStatus) error {

@@ -18,7 +18,7 @@ type CreateOrderItem struct {
 }
 
 type OrderService interface {
-	CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem) (*entity.Order, error)
+	CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem, promoCode string) (*entity.Order, error)
 	GetOrder(ctx context.Context, id uuid.UUID) (*entity.Order, error)
 	ListOrders(ctx context.Context, page, pageSize int, status *entity.OrderStatus, paymentStatus *entity.PaymentStatus) ([]*entity.Order, int, error)
 	UpdateOrderStatus(ctx context.Context, id uuid.UUID, newStatus entity.OrderStatus) (*entity.Order, error)
@@ -29,22 +29,24 @@ type Services interface {
 }
 
 type UseCase struct {
-	orderRepo   repository.OrderRepository
-	productRepo repository.ProductRepository
-	variantRepo repository.ProductVariantRepository
-	services    Services
+	orderRepo    repository.OrderRepository
+	productRepo  repository.ProductRepository
+	variantRepo  repository.ProductVariantRepository
+	discountRepo repository.DiscountRepository
+	services     Services
 }
 
-func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, variantRepo repository.ProductVariantRepository, services Services) *UseCase {
+func NewUseCase(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, variantRepo repository.ProductVariantRepository, discountRepo repository.DiscountRepository, services Services) *UseCase {
 	return &UseCase{
-		orderRepo:   orderRepo,
-		productRepo: productRepo,
-		variantRepo: variantRepo,
-		services:    services,
+		orderRepo:    orderRepo,
+		productRepo:  productRepo,
+		variantRepo:  variantRepo,
+		discountRepo: discountRepo,
+		services:     services,
 	}
 }
 
-func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem) (*entity.Order, error) {
+func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []CreateOrderItem, promoCode string) (*entity.Order, error) {
 	if customerID <= 0 {
 		return nil, errors.New("Invalid customer ID")
 	}
@@ -150,7 +152,23 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 		UpdatedAt:     time.Now(),
 	}
 
+	// Calculate order total
 	order.CalculateTotal()
+
+	// Apply discount if promo code provided
+	if promoCode != "" {
+		discount, err := uc.discountRepo.GetByPromoCode(ctx, promoCode)
+		if err != nil {
+			return nil, errors.New("invalid or inactive promo code")
+		}
+
+		// Apply discount directly to total
+		discountedTotal, err := discount.ApplyDiscount(order.TotalPrice)
+		if err != nil {
+			return nil, err
+		}
+		order.TotalPrice = discountedTotal
+	}
 
 	if err := order.Validate(); err != nil {
 		return nil, err
