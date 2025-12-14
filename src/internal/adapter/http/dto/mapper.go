@@ -139,3 +139,14 @@ func ToProductVariantListResponse(variants []*entity.ProductVariant, total, page
 		},
 	}
 }
+
+// Discount Mappers
+func ToDiscountResponse(discount *entity.Discount) DiscountResponse {
+	return DiscountResponse{
+		ID:           discount.ID.String(),
+		PromoCode:    discount.PromoCode,
+		DiscountType: string(discount.DiscountType),
+		Value:        discount.Value,
+		Active:       discount.Active,
+	}
+}

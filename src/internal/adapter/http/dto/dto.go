@@ -111,6 +111,26 @@ type AuthResponse struct {
 	ExpiresAt string `json:"expires_at"`
 }
 
+// Discount DTOs
+type DiscountRequest struct {
+	PromoCode    string  `json:"promo_code" example:"SUMMER2024"`
+	DiscountType string  `json:"discount_type" example:"percentage"` // "percentage" or "amount"
+	Value        float64 `json:"value" example:"15.0"`               // Percentage (0-100) or fixed amount
+	Active       bool    `json:"active" example:"true"`
+}
+
+type DiscountResponse struct {
+	ID           string  `json:"id"`
+	PromoCode    string  `json:"promo_code"`
+	DiscountType string  `json:"discount_type"` // "percentage" or "amount"
+	Value        float64 `json:"value"`
+	Active       bool    `json:"active"`
+}
+
+type ApplyDiscountRequest struct {
+	PromoCode string `json:"promo_code" example:"SUMMER2024"`
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }

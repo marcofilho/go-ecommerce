@@ -30,5 +30,6 @@ func Migrate(db *gorm.DB) error {
 		&entity.OrderItem{},       // Foreign key to Order and Product
 		&entity.WebhookLog{},      // Foreign key to Order
 		&entity.AuditLog{},        // Audit logging for all entities
+		&entity.Discount{},        // No dependencies
 	)
 }

@@ -26,7 +26,6 @@ func NewAuditService(repo repository.AuditLogRepository) AuditService {
 func (s *auditService) LogChange(ctx context.Context, userID *uuid.UUID, action, resourceType string, resourceID uuid.UUID, before, after interface{}) error {
 	var payloadBefore, payloadAfter datatypes.JSON
 
-	// Convert before payload to JSON
 	if before != nil {
 		beforeBytes, err := json.Marshal(before)
 		if err != nil {
@@ -35,7 +34,6 @@ func (s *auditService) LogChange(ctx context.Context, userID *uuid.UUID, action,
 		payloadBefore = datatypes.JSON(beforeBytes)
 	}
 
-	// Convert after payload to JSON
 	if after != nil {
 		afterBytes, err := json.Marshal(after)
 		if err != nil {

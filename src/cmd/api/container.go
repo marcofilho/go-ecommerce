@@ -12,6 +12,7 @@ import (
 	infraRepo "github.com/marcofilho/go-ecommerce/src/internal/infrastructure/repository"
 	authUseCase "github.com/marcofilho/go-ecommerce/src/usecase/auth"
 	categoryUseCase "github.com/marcofilho/go-ecommerce/src/usecase/category"
+	discountUseCase "github.com/marcofilho/go-ecommerce/src/usecase/discount"
 	orderUseCase "github.com/marcofilho/go-ecommerce/src/usecase/order"
 	paymentUseCase "github.com/marcofilho/go-ecommerce/src/usecase/payment"
 	productUseCase "github.com/marcofilho/go-ecommerce/src/usecase/product"
@@ -39,6 +40,7 @@ type Container struct {
 	OrderRepo          repository.OrderRepository
 	WebhookRepo        repository.WebhookRepository
 	UserRepo           repository.UserRepository
+	DiscountRepo       repository.DiscountRepository
 	AuditLogRepo       repository.AuditLogRepository
 
 	// Infrastructure
@@ -52,6 +54,7 @@ type Container struct {
 	OrderUseCase          *orderUseCase.UseCase
 	PaymentUseCase        *paymentUseCase.PaymentUseCase
 	AuthUseCase           *authUseCase.UseCase
+	DiscountUseCase       *discountUseCase.UseCase
 
 	// Handlers
 	ProductHandler        *handler.ProductHandler
@@ -60,6 +63,7 @@ type Container struct {
 	OrderHandler          *handler.OrderHandler
 	PaymentHandler        *handler.PaymentHandler
 	AuthHandler           *handler.AuthHandler
+	DiscountHandler       *handler.DiscountHandler
 
 	// Middleware
 	AuthMiddleware *middleware.AuthMiddleware
@@ -77,6 +81,7 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	c.CategoryRepo = infraRepo.NewCategoryRepository(db)
 	c.OrderRepo = infraRepo.NewOrderRepositoryPostgres(db)
 	c.WebhookRepo = infraRepo.NewWebhookRepository(db)
+	c.DiscountRepo = infraRepo.NewDiscountRepository(db)
 	c.UserRepo = infraRepo.NewUserRepository(db)
 	c.AuditLogRepo = infraRepo.NewAuditLogRepository(db)
 
@@ -93,6 +98,7 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	c.OrderUseCase = orderUseCase.NewUseCase(c.OrderRepo, c.ProductRepo, c.ProductVariantRepo, c.Services)
 	c.PaymentUseCase = paymentUseCase.NewPaymentUseCase(c.OrderRepo, c.WebhookRepo, c.Services)
 	c.AuthUseCase = authUseCase.NewUseCase(c.UserRepo, c.JWTProvider)
+	c.DiscountUseCase = discountUseCase.NewUseCase(c.DiscountRepo)
 
 	// Handlers
 	c.ProductHandler = handler.NewProductHandler(c.ProductUseCase)
@@ -101,6 +107,7 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 	c.OrderHandler = handler.NewOrderHandler(c.OrderUseCase)
 	c.PaymentHandler = handler.NewPaymentHandler(c.PaymentUseCase, cfg.Webhook.Secret)
 	c.AuthHandler = handler.NewAuthHandler(c.AuthUseCase)
+	c.DiscountHandler = handler.NewDiscountHandler(c.DiscountUseCase)
 
 	// Middleware
 	c.AuthMiddleware = middleware.NewAuthMiddleware(c.AuthUseCase)

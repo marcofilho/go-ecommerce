@@ -18,6 +18,9 @@ const (
 	PermissionListOrders        Permission = "order:list"
 	PermissionUpdateOrderStatus Permission = "order:update_status"
 
+	// Discount Permissions
+	PermissionManageDiscounts Permission = "discount:manage"
+
 	// Webhook permissions
 	PermissionViewWebhookHistory Permission = "webhook:view_history"
 )
@@ -35,6 +38,7 @@ var RolePermissions = map[entity.Role][]Permission{
 		PermissionListOrders,
 		PermissionUpdateOrderStatus,
 		PermissionViewWebhookHistory,
+		PermissionManageDiscounts,
 	},
 	entity.RoleCustomer: {
 		// Customers can only view products and manage their own orders

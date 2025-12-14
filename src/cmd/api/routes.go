@@ -128,5 +128,23 @@ func SetupRoutes(c *Container) *http.ServeMux {
 		),
 	))
 
+	// Discount routes
+	// Admin only: Create and manage discounts
+	mux.Handle("POST /api/discount", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionManageDiscounts)( // Using product permission for admin
+			http.HandlerFunc(c.DiscountHandler.CreateDiscount),
+		),
+	))
+	mux.Handle("GET /api/discount/{id}", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionManageDiscounts)(
+			http.HandlerFunc(c.DiscountHandler.GetDiscount),
+		),
+	))
+	mux.Handle("PUT /api/discount/{id}", c.AuthMiddleware.Authenticate(
+		c.AuthMiddleware.RequirePermission(middleware.PermissionUpdateProduct)(
+			http.HandlerFunc(c.DiscountHandler.UpdateDiscount),
+		),
+	))
+
 	return mux
 }
