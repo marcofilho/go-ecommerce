@@ -9,7 +9,8 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - Product Management (CRUD with stock tracking)
 - **Product Categories** (N:N relationship - products can have multiple categories)
 - **Product Variants** (support multiple variants per product with optional price overrides)
-- Order Management (create orders with automatic stock deduction)
+- **Promo Codes & Discounts** (percentage and fixed amount discounts applied at checkout)
+- Order Management (create orders with automatic stock deduction and optional promo code support)
 - **Advanced Payment Webhook Security**:
   - HMAC-SHA256 signature validation
   - Timestamp-based replay attack prevention (±5 minute tolerance)
@@ -51,10 +52,10 @@ Server starts at `http://localhost:8080`
 
 **Note:** `make start` automatically runs:
 
-1. Unit tests (276 tests)
+1. Unit tests (178 tests)
 2. Service startup (PostgreSQL + API)
 3. Database auto-seeding (if empty) with sample data
-4. Integration tests (webhook + auth scenarios)
+4. Integration tests (webhook + auth + promo code scenarios)
 5. Opens Swagger UI in browser
 
 **Default Admin Account:** `admin@ecommerce.com` / `password123`
@@ -106,6 +107,12 @@ curl -X POST http://localhost:8080/api/orders \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"customer_id":123,"products":[{"product_id":"YOUR_PRODUCT_ID","quantity":2}]}'
+
+# Create an order with promo code (authenticated users)
+curl -X POST http://localhost:8080/api/orders \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"customer_id":123,"products":[{"product_id":"YOUR_PRODUCT_ID","quantity":2}],"promo_code":"SAVE20"}'
 ```
 
 ## API Endpoints
@@ -144,9 +151,16 @@ curl -X POST http://localhost:8080/api/orders \
 - `PUT /api/variants/{variant_id}` - Update variant (**Admin only** 🔒)
 - `DELETE /api/variants/{variant_id}` - Delete variant (**Admin only** 🔒)
 
+### Discounts & Promo Codes
+
+- `POST /api/discounts` - Create discount/promo code (**Admin only** 🔒)
+- `GET /api/discounts/{id}` - Get discount by ID (**Admin only** 🔒)
+- `PUT /api/discounts/{id}` - Update discount (**Admin only** 🔒)
+- `POST /api/discounts/validate` - Validate promo code (Public)
+
 ### Orders
 
-- `POST /api/orders` - Create order (Authenticated 🔒)
+- `POST /api/orders` - Create order with optional promo code (Authenticated 🔒)
 - `GET /api/orders` - List orders (supports `?page=1&page_size=10&status=pending`) (Authenticated 🔒)
 - `GET /api/orders/{id}` - Get order (Authenticated 🔒)
 - `PUT /api/orders/{id}/status` - Update order status (**Admin only** 🔒)
@@ -161,6 +175,12 @@ curl -X POST http://localhost:8080/api/orders \
 - Timestamp-based replay attack prevention
 - Security best practices
 - Code examples and test scenarios
+
+**📖 See [Promo Codes & Discounts Documentation](docs/PROMO_CODES.md) for complete guide including:**
+- Creating and managing discount codes
+- Percentage vs fixed amount discounts
+- Applying promo codes to orders
+- Testing and validation examples
 
 ## Testing
 
@@ -180,6 +200,9 @@ Run authentication and authorization tests:
 ```bash
 # Requires running API
 make test-auth
+
+# Run promo code integration tests
+make test-promo
 ```
 
 ### Load Tests
@@ -211,7 +234,7 @@ This comprehensive load test verifies:
 - **Category use cases: 100.0% coverage** ✅
 - **Order use cases: 95.1% coverage** ✅
 - **JWT Provider: 100.0% coverage** ✅
-- **Total: 276 passing tests across 18 test packages**
+- **Total: 178 passing unit tests + 39 integration test scenarios**
 
 **Test Suites:**
 
@@ -334,6 +357,7 @@ make logs          # View service logs
 make test          # Run unit tests in Docker
 make test-webhook  # Run webhook integration tests
 make test-auth     # Run authentication integration tests
+make test-promo    # Run promo code integration tests
 
 # Database
 make seed          # Manually seed database with sample data
@@ -370,8 +394,7 @@ Environment variables (defaults):
 🛡️ **Role-Based Access Control** - Fine-grained permission system with admin privilege restrictions  
 👥 **Secure Admin Creation** - Admin accounts require authenticated admin authorization  
 🏷️ **Product Categories** - N:N relationship supporting multiple categories per product  
-🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
-🧪 **Comprehensive Testing** - 282 unit tests + 17 auth tests + 12 webhook tests with 95%+ coverage  
+🎨 **Product Variants** - Support for multiple product variants with optional price overrides  🎫 **Promo Codes & Discounts** - Flexible discount system with percentage and fixed amount support  🧪 **Comprehensive Testing** - 178 unit tests + 17 auth tests + 12 webhook tests + 10 promo code tests with 95%+ coverage  
 🔒 **Advanced Webhook Security**:
   - HMAC-SHA256 signature verification with `X-Payment-Signature` header
   - Timestamp-based replay attack prevention (±5 minute tolerance window)

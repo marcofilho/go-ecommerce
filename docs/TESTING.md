@@ -7,7 +7,13 @@ Run all unit tests:
 make test
 ```
 
-Current test coverage: **282 tests** across 18 packages, all passing.
+Current test coverage: **178 unit tests** across all packages, all passing.
+
+**Integration Tests:**
+- **17 authentication scenarios**
+- **12 webhook security scenarios**  
+- **10 promo code scenarios**
+- **39 total integration test scenarios**
 
 Key test files:
 - `src/internal/domain/entity/*_test.go` - Domain entity tests (User, Product, ProductVariant, Category, Order)
@@ -38,6 +44,24 @@ make test-auth
 - ✅ Token validation
 - ✅ Role-based access control (admin privileges)
 - ✅ Public vs authenticated endpoints
+
+### Promo Code Tests
+Comprehensive promo code and discount integration tests:
+```bash
+make test-promo
+```
+
+**Coverage (10 scenarios):**
+- ✅ Create percentage discount (20% off)
+- ✅ Create fixed amount discount ($15 off)
+- ✅ Order without promo code (baseline)
+- ✅ Order with valid percentage promo ($100 → $80)
+- ✅ Order with valid amount promo ($100 → $85)
+- ✅ Reject invalid promo code
+- ✅ Reject inactive promo code
+- ✅ Validate active promo endpoint
+- ✅ Validate inactive promo rejection
+- ✅ Multiple items with promo discount
 
 ### Webhook Security Tests
 Comprehensive payment webhook integration tests:
@@ -177,7 +201,51 @@ PRODUCT_ID="product_uuid_here"
 curl "http://localhost:8080/api/products/$PRODUCT_ID/variants"
 ```
 
-#### 11. Create Order with Variant
+#### 11. Create Discount/Promo Code (Admin only)
+```bash
+TOKEN="your_admin_token_here"
+
+curl -X POST http://localhost:8080/api/discounts \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "promo_code": "SAVE20",
+    "discount_type": "percentage",
+    "value": 20.0,
+    "active": true
+  }'
+```
+
+#### 12. Validate Promo Code (Public)
+```bash
+curl -X POST http://localhost:8080/api/discounts/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "promo_code": "SAVE20"
+  }'
+```
+
+#### 13. Create Order with Promo Code
+```bash
+TOKEN="your_token_here"
+PRODUCT_ID="product_uuid_here"
+
+curl -X POST http://localhost:8080/api/orders \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"customer_id\": 123,
+    \"products\": [
+      {
+        \"product_id\": \"$PRODUCT_ID\",
+        \"quantity\": 2
+      }
+    ],
+    \"promo_code\": \"SAVE20\"
+  }"
+```
+
+#### 14. Create Order with Variant
 ```bash
 TOKEN="your_token_here"
 PRODUCT_ID="product_uuid_here"
@@ -253,6 +321,11 @@ make swagger
 | | GET /api/products/{id}/variants | ✅ | Public access, returns 200 |
 | | PUT /api/variants/{variant_id} | ✅ | Admin only, returns 403 for customer |
 | | DELETE /api/variants/{variant_id} | ✅ | Admin only, returns 403 for customer |
+| **Discounts** |
+| | POST /api/discounts | ✅ | Admin only, creates promo code |
+| | GET /api/discounts/{id} | ✅ | Admin only, retrieves discount |
+| | PUT /api/discounts/{id} | ✅ | Admin only, updates discount |
+| | POST /api/discounts/validate | ✅ | Public access, validates promo code |
 | **Orders** |
 | | POST /api/orders | ✅ | Authenticated users, supports variant_id |
 | | GET /api/orders | ✅ | Authenticated users, returns 200 |
@@ -264,7 +337,7 @@ make swagger
 | **Documentation** |
 | | GET /swagger/index.html | ✅ | Swagger UI accessible |
 
-**Total: 25 endpoints, all working correctly**
+**Total: 29 endpoints, all working correctly**
 
 **Security Features Tested:**
 - ✅ HMAC-SHA256 signature validation

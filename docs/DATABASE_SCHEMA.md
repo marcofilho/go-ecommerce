@@ -14,13 +14,13 @@ This document describes the complete database schema for the Go E-Commerce API. 
        │ 1:N (customer_id)
        │
        ▼
-┌─────────────┐         ┌──────────────────┐
-│   orders    │────────▶│   order_items    │
-└─────────────┘   1:N   └────────┬─────────┘
-       │                         │
-       │ 1:N                     │ N:1
-       │                         │
-       ▼                         ▼
+┌─────────────┐         ┌──────────────────┐          ┌─────────────┐
+│   orders    │────────▶│   order_items    │          │  discounts  │
+└─────────────┘   1:N   └────────┬─────────┘          └─────────────┘
+       │                         │           (promo codes)
+       │ 1:N                     │ N:1        (applied at
+       │                         │             checkout,
+       ▼                         ▼          not stored)
 ┌─────────────┐         ┌──────────────────┐
 │webhook_logs │         │    products      │
 └─────────────┘         └────────┬─────────┘
@@ -72,7 +72,42 @@ id | email                | password_hash      | name       | role     | created
 
 ---
 
-### 2. categories
+### 2. discounts
+
+Stores promotional discount codes with percentage or fixed amount values.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Discount unique identifier |
+| promo_code | VARCHAR(255) | UNIQUE, NOT NULL | Promotional code (e.g., "SAVE20") |
+| discount_type | VARCHAR(50) | NOT NULL | Type: 'percentage' or 'amount' |
+| value | DECIMAL(10,2) | NOT NULL | Discount value (percentage 0-100 or fixed amount) |
+| active | BOOLEAN | NOT NULL, DEFAULT true | Whether the discount is currently active |
+| created_at | TIMESTAMP | NOT NULL | Creation timestamp |
+| updated_at | TIMESTAMP | NOT NULL | Last update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- UNIQUE INDEX on `promo_code`
+
+**Business Rules:**
+- Percentage discounts: value must be between 0 and 100
+- Amount discounts: value is the fixed dollar amount to subtract
+- Only active discounts can be applied to orders
+- Promo codes are case-sensitive
+
+**Example:**
+```sql
+id                                   | promo_code | discount_type | value | active | created_at          | updated_at
+-------------------------------------+------------+---------------+-------+--------+---------------------+---------------------
+880e8400-e29b-41d4-a716-446655440003 | SAVE20     | percentage    | 20.00 | true   | 2025-12-14 10:00:00 | 2025-12-14 10:00:00
+990e8400-e29b-41d4-a716-446655440004 | SAVE15     | amount        | 15.00 | true   | 2025-12-14 10:01:00 | 2025-12-14 10:01:00
+aа0e8400-e29b-41d4-a716-446655440005 | SUMMER50   | percentage    | 50.00 | false  | 2025-12-14 10:02:00 | 2025-12-14 10:02:00
+```
+
+---
+
+### 3. categories
 
 Stores product categories for organizing products.
 

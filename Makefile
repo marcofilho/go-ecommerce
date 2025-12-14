@@ -63,6 +63,11 @@ test-auth:
 	@echo "Running Authentication Integration Tests..."
 	@./test_authentication.sh
 
+# Run promo code integration tests
+test-promo:
+	@echo "Running Promo Code Integration Tests..."
+	@./test_promo_codes.sh
+
 # Database management commands
 seed:
 	@echo "Seeding database with sample data..."
@@ -96,6 +101,7 @@ help:
 	@echo "  make test          - Run unit tests in Docker"
 	@echo "  make test-webhook  - Run webhook integration tests"
 	@echo "  make test-auth     - Run authentication integration tests"
+	@echo "  make test-promo    - Run promo code integration tests"
 	@echo ""
 	@echo "Database:"
 	@echo "  make seed          - Seed database with sample data"
