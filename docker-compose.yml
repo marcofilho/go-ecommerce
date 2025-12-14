@@ -18,6 +18,22 @@ services:
     networks:
       - ecommerce_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce_network
+
   api:
     build:
       context: .
@@ -33,10 +49,17 @@ services:
       WEBHOOK_SECRET: my-super-secret-webhook-key-change-in-production
       JWT_SECRET: my-jwt-secret-key-change-in-production-use-strong-secret
       JWT_EXPIRATION_HOURS: 24
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      CACHE_ENABLED: "true"
+      CACHE_TTL_MINUTES: 10
     ports:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - ecommerce_network
@@ -57,6 +80,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   ecommerce_network:

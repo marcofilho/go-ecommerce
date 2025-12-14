@@ -10,6 +10,8 @@ type Config struct {
 	Server   ServerConfig
 	Webhook  WebhookConfig
 	JWT      JWTConfig
+	Redis    RedisConfig
+	Cache    CacheConfig
 }
 
 type DatabaseConfig struct {
@@ -34,6 +36,17 @@ type JWTConfig struct {
 	ExpirationHours int
 }
 
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+}
+
+type CacheConfig struct {
+	Enabled    bool
+	TTLMinutes int
+}
+
 func Load() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -53,6 +66,15 @@ func Load() *Config {
 		JWT: JWTConfig{
 			Secret:          getEnv("JWT_SECRET", "your-jwt-secret-key-change-in-production"),
 			ExpirationHours: getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
+		},
+		Redis: RedisConfig{
+			Host:     getEnv("REDIS_HOST", "localhost"),
+			Port:     getEnv("REDIS_PORT", "6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+		},
+		Cache: CacheConfig{
+			Enabled:    getEnvAsBool("CACHE_ENABLED", true),
+			TTLMinutes: getEnvAsInt("CACHE_TTL_MINUTES", 10),
 		},
 	}
 }
@@ -81,4 +103,12 @@ func getEnvAsInt(key string, defaultValue int) int {
 		return defaultValue
 	}
 	return value
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := os.Getenv(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+	return valueStr == "true" || valueStr == "1" || valueStr == "yes"
 }

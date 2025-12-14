@@ -10,6 +10,7 @@ A RESTful API for managing products and orders in an e-commerce system, built wi
 - **Product Categories** (N:N relationship - products can have multiple categories)
 - **Product Variants** (support multiple variants per product with optional price overrides)
 - **Promo Codes & Discounts** (percentage and fixed amount discounts applied at checkout)
+- **Redis Caching** (product list and detail endpoints cached for performance)
 - Order Management (create orders with automatic stock deduction and optional promo code support)
 - **Advanced Payment Webhook Security**:
   - HMAC-SHA256 signature validation
@@ -181,6 +182,12 @@ curl -X POST http://localhost:8080/api/orders \
 - Percentage vs fixed amount discounts
 - Applying promo codes to orders
 - Testing and validation examples
+
+**📖 See [Redis Caching Documentation](docs/REDIS_CACHING.md) for complete guide including:**
+- Cache configuration and setup
+- Performance benchmarks and benefits
+- Cache invalidation strategies
+- Monitoring and troubleshooting
 
 ## Testing
 
@@ -358,6 +365,7 @@ make test          # Run unit tests in Docker
 make test-webhook  # Run webhook integration tests
 make test-auth     # Run authentication integration tests
 make test-promo    # Run promo code integration tests
+make test-cache    # Run Redis caching performance tests
 
 # Database
 make seed          # Manually seed database with sample data
@@ -376,15 +384,27 @@ make help          # Show available commands
 
 Environment variables (defaults):
 
+**Database:**
 - `DB_HOST=localhost`
 - `DB_PORT=5432`
 - `DB_USER=postgres`
 - `DB_PASSWORD=postgres`
 - `DB_NAME=ecommerce`
+
+**Server:**
 - `SERVER_PORT=8080`
+
+**Authentication:**
 - `JWT_SECRET=your-secret-key` (⚠️ Change in production!)
 - `JWT_EXPIRATION_HOURS=24` (Token validity period)
 - `WEBHOOK_SECRET=your-webhook-secret-key` (⚠️ Change in production!)
+
+**Redis Cache:**
+- `REDIS_HOST=localhost`
+- `REDIS_PORT=6379`
+- `REDIS_PASSWORD=` (empty by default)
+- `CACHE_ENABLED=true` (Enable/disable caching)
+- `CACHE_TTL_MINUTES=10` (Cache time-to-live)
 
 ## Project Highlights
 
@@ -394,7 +414,10 @@ Environment variables (defaults):
 🛡️ **Role-Based Access Control** - Fine-grained permission system with admin privilege restrictions  
 👥 **Secure Admin Creation** - Admin accounts require authenticated admin authorization  
 🏷️ **Product Categories** - N:N relationship supporting multiple categories per product  
-🎨 **Product Variants** - Support for multiple product variants with optional price overrides  🎫 **Promo Codes & Discounts** - Flexible discount system with percentage and fixed amount support  🧪 **Comprehensive Testing** - 178 unit tests + 17 auth tests + 12 webhook tests + 10 promo code tests with 95%+ coverage  
+🎨 **Product Variants** - Support for multiple product variants with optional price overrides  
+🎫 **Promo Codes & Discounts** - Flexible discount system with percentage and fixed amount support  
+⚡ **Redis Caching** - Automatic caching of product endpoints for improved performance  
+🧪 **Comprehensive Testing** - 178 unit tests + 17 auth tests + 12 webhook tests + 10 promo code tests with 95%+ coverage  
 🔒 **Advanced Webhook Security**:
   - HMAC-SHA256 signature verification with `X-Payment-Signature` header
   - Timestamp-based replay attack prevention (±5 minute tolerance window)

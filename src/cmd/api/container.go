@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"gorm.io/gorm"
 
 	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/handler"
@@ -9,6 +11,7 @@ import (
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/repository"
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/audit"
 	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/auth"
+	"github.com/marcofilho/go-ecommerce/src/internal/infrastructure/cache"
 	infraRepo "github.com/marcofilho/go-ecommerce/src/internal/infrastructure/repository"
 	authUseCase "github.com/marcofilho/go-ecommerce/src/usecase/auth"
 	categoryUseCase "github.com/marcofilho/go-ecommerce/src/usecase/category"
@@ -44,6 +47,7 @@ type Container struct {
 	AuditLogRepo       repository.AuditLogRepository
 
 	// Infrastructure
+	RedisClient *cache.RedisClient
 	JWTProvider *auth.JWTProvider
 	Services    *Services
 
@@ -75,8 +79,30 @@ func NewContainer(db *gorm.DB, cfg *config.Config) *Container {
 		DB:     db,
 		Config: cfg,
 	}
+	if cfg.Cache.Enabled {
+		redisClient, err := cache.NewRedisClient(
+			cfg.Redis.Host,
+			cfg.Redis.Port,
+			cfg.Redis.Password,
+			cfg.Cache.TTLMinutes,
+		)
+		if err != nil {
+			log.Printf("Warning: Failed to connect to Redis: %v. Caching disabled.", err)
+		} else {
+			c.RedisClient = redisClient
+			log.Println("✓ Redis cache enabled")
+		}
+	}
 
-	c.ProductRepo = infraRepo.NewProductRepositoryPostgres(db)
+	baseProductRepo := infraRepo.NewProductRepositoryPostgres(db)
+
+	if c.RedisClient != nil {
+		c.ProductRepo = infraRepo.NewCachedProductRepository(baseProductRepo, c.RedisClient)
+		log.Println("✓ Product repository caching enabled")
+	} else {
+		c.ProductRepo = baseProductRepo
+	}
+
 	c.ProductVariantRepo = infraRepo.NewProductVariantRepositoryPostgres(db)
 	c.CategoryRepo = infraRepo.NewCategoryRepository(db)
 	c.OrderRepo = infraRepo.NewOrderRepositoryPostgres(db)
