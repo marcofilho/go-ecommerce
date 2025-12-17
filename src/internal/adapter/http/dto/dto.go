@@ -114,22 +114,67 @@ type AuthResponse struct {
 
 // Discount DTOs
 type DiscountRequest struct {
-	PromoCode    string  `json:"promo_code" example:"SUMMER2024"`
-	DiscountType string  `json:"discount_type" example:"percentage"` // "percentage" or "amount"
-	Value        float64 `json:"value" example:"15.0"`               // Percentage (0-100) or fixed amount
-	Active       bool    `json:"active" example:"true"`
+	PromoCode         string   `json:"promo_code" example:"SUMMER2024"`
+	DiscountType      string   `json:"discount_type" example:"percentage"` // "percentage" or "amount"
+	Value             float64  `json:"value" example:"15.0"`               // Percentage (0-100) or fixed amount
+	Active            bool     `json:"active" example:"true"`
+	MinPurchaseAmount *float64 `json:"min_purchase_amount,omitempty" example:"50.00"`
+	MaxDiscountAmount *float64 `json:"max_discount_amount,omitempty" example:"100.00"`
+	UsageLimit        *int     `json:"usage_limit,omitempty" example:"100"`
+	ValidFrom         *string  `json:"valid_from,omitempty" example:"2025-06-01T00:00:00Z"`
+	ValidUntil        *string  `json:"valid_until,omitempty" example:"2025-12-31T23:59:59Z"`
+	ProductIDs        []string `json:"product_ids,omitempty"`                  // Empty = applies to all products
+	CategoryIDs       []string `json:"category_ids,omitempty"`                 // Empty = applies to all categories
+	UserIDs           []string `json:"user_ids,omitempty"`                     // Empty = applies to all users
+	UserUsageLimit    *int     `json:"user_usage_limit,omitempty" example:"5"` // Per-user usage limit
 }
 
 type DiscountResponse struct {
-	ID           string  `json:"id"`
-	PromoCode    string  `json:"promo_code"`
-	DiscountType string  `json:"discount_type"` // "percentage" or "amount"
-	Value        float64 `json:"value"`
-	Active       bool    `json:"active"`
+	ID                string             `json:"id"`
+	PromoCode         string             `json:"promo_code"`
+	DiscountType      string             `json:"discount_type"` // "percentage" or "amount"
+	Value             float64            `json:"value"`
+	Active            bool               `json:"active"`
+	MinPurchaseAmount *float64           `json:"min_purchase_amount,omitempty"`
+	MaxDiscountAmount *float64           `json:"max_discount_amount,omitempty"`
+	UsageLimit        *int               `json:"usage_limit,omitempty"`
+	UsageCount        int                `json:"usage_count"`
+	ValidFrom         *string            `json:"valid_from,omitempty"`
+	ValidUntil        *string            `json:"valid_until,omitempty"`
+	Products          []ProductResponse  `json:"products,omitempty"`
+	Categories        []CategoryResponse `json:"categories,omitempty"`
+	Users             []UserSummary      `json:"users,omitempty"`
+	CreatedAt         string             `json:"created_at"`
+	UpdatedAt         string             `json:"updated_at"`
+}
+
+type UserSummary struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 type ApplyDiscountRequest struct {
 	PromoCode string `json:"promo_code" example:"SUMMER2024"`
+}
+
+type ValidateDiscountRequest struct {
+	PromoCode  string                     `json:"promo_code" example:"SUMMER2024"`
+	OrderItems []ValidateDiscountItemInfo `json:"order_items"`
+}
+
+type ValidateDiscountItemInfo struct {
+	ProductID string  `json:"product_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Quantity  int     `json:"quantity" example:"2"`
+	Price     float64 `json:"price" example:"99.99"`
+}
+
+type ValidateDiscountResponse struct {
+	Valid             bool              `json:"valid"`
+	Discount          *DiscountResponse `json:"discount,omitempty"`
+	ApplicableItems   []string          `json:"applicable_items,omitempty"`
+	EstimatedDiscount float64           `json:"estimated_discount"`
+	Message           string            `json:"message"`
 }
 
 type ErrorResponse struct {

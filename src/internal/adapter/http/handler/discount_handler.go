@@ -3,12 +3,34 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
 	"github.com/marcofilho/go-ecommerce/src/usecase/discount"
 )
+
+// Helper functions
+func parseUUIDs(strs []string) ([]uuid.UUID, error) {
+	if len(strs) == 0 {
+		return []uuid.UUID{}, nil
+	}
+
+	uuids := make([]uuid.UUID, 0, len(strs))
+	for _, str := range strs {
+		id, err := uuid.Parse(str)
+		if err != nil {
+			return nil, err
+		}
+		uuids = append(uuids, id)
+	}
+	return uuids, nil
+}
+
+func parseTime(str string) (time.Time, error) {
+	return time.Parse(time.RFC3339, str)
+}
 
 type DiscountHandler struct {
 	useCase discount.DiscountService
@@ -53,13 +75,47 @@ func (h *DiscountHandler) CreateDiscount(w http.ResponseWriter, r *http.Request)
 	}
 
 	discount := &entity.Discount{
-		PromoCode:    req.PromoCode,
-		DiscountType: discountType,
-		Value:        req.Value,
-		Active:       req.Active,
+		PromoCode:         req.PromoCode,
+		DiscountType:      discountType,
+		Value:             req.Value,
+		Active:            req.Active,
+		MinPurchaseAmount: req.MinPurchaseAmount,
+		MaxDiscountAmount: req.MaxDiscountAmount,
+		UsageLimit:        req.UsageLimit,
 	}
 
-	if err := h.useCase.CreateDiscount(r.Context(), discount); err != nil {
+	// Parse dates if provided
+	if req.ValidFrom != nil {
+		if t, err := parseTime(*req.ValidFrom); err == nil {
+			discount.ValidFrom = &t
+		}
+	}
+	if req.ValidUntil != nil {
+		if t, err := parseTime(*req.ValidUntil); err == nil {
+			discount.ValidUntil = &t
+		}
+	}
+
+	// Parse UUIDs
+	productIDs, err := parseUUIDs(req.ProductIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid product IDs")
+		return
+	}
+
+	categoryIDs, err := parseUUIDs(req.CategoryIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid category IDs")
+		return
+	}
+
+	userIDs, err := parseUUIDs(req.UserIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user IDs")
+		return
+	}
+
+	if err := h.useCase.CreateDiscount(r.Context(), discount, productIDs, categoryIDs, userIDs, req.UserUsageLimit); err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -148,8 +204,42 @@ func (h *DiscountHandler) UpdateDiscount(w http.ResponseWriter, r *http.Request)
 	existingDiscount.DiscountType = discountType
 	existingDiscount.Value = req.Value
 	existingDiscount.Active = req.Active
+	existingDiscount.MinPurchaseAmount = req.MinPurchaseAmount
+	existingDiscount.MaxDiscountAmount = req.MaxDiscountAmount
+	existingDiscount.UsageLimit = req.UsageLimit
 
-	if err := h.useCase.UpdateDiscount(r.Context(), existingDiscount); err != nil {
+	// Parse dates if provided
+	if req.ValidFrom != nil {
+		if t, err := parseTime(*req.ValidFrom); err == nil {
+			existingDiscount.ValidFrom = &t
+		}
+	}
+	if req.ValidUntil != nil {
+		if t, err := parseTime(*req.ValidUntil); err == nil {
+			existingDiscount.ValidUntil = &t
+		}
+	}
+
+	// Parse UUIDs
+	productIDs, err := parseUUIDs(req.ProductIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid product IDs")
+		return
+	}
+
+	categoryIDs, err := parseUUIDs(req.CategoryIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid category IDs")
+		return
+	}
+
+	userIDs, err := parseUUIDs(req.UserIDs)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid user IDs")
+		return
+	}
+
+	if err := h.useCase.UpdateDiscount(r.Context(), existingDiscount, productIDs, categoryIDs, userIDs, req.UserUsageLimit); err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}

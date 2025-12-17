@@ -148,13 +148,13 @@ func TestDiscount_ApplyDiscount_Amount(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name: "$100 off $50 (negative)",
+			name: "$100 off $50 (capped at zero)",
 			discount: Discount{
 				DiscountType: Amount,
 				Value:        100.0,
 			},
 			total:         50.0,
-			expectedTotal: -50.0,
+			expectedTotal: 0.0,
 			wantErr:       false,
 		},
 	}

@@ -161,6 +161,34 @@ func (m *mockDiscountRepo) GetByPromoCode(ctx context.Context, promoCode string)
 	return nil, errors.New("not found")
 }
 
+func (m *mockDiscountRepo) GetByPromoCodeWithRelations(ctx context.Context, promoCode string) (*entity.Discount, error) {
+	return m.GetByPromoCode(ctx, promoCode)
+}
+
+func (m *mockDiscountRepo) GetUserUsage(ctx context.Context, discountID, userID uuid.UUID) (*entity.DiscountUser, error) {
+	return nil, nil
+}
+
+func (m *mockDiscountRepo) IncrementUsage(ctx context.Context, discountID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) IncrementUserUsage(ctx context.Context, discountID, userID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) AssociateProducts(ctx context.Context, discountID uuid.UUID, productIDs []uuid.UUID) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) AssociateCategories(ctx context.Context, discountID uuid.UUID, categoryIDs []uuid.UUID) error {
+	return nil
+}
+
+func (m *mockDiscountRepo) AssociateUsers(ctx context.Context, discountID uuid.UUID, userIDs []uuid.UUID, userUsageLimit *int) error {
+	return nil
+}
+
 func TestCreateOrder_Success(t *testing.T) {
 	orderRepo := newMockOrderRepo()
 	productRepo := newMockProductRepo()

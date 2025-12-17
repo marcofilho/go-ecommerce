@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/marcofilho/go-ecommerce/src/internal/adapter/http/dto"
 	"github.com/marcofilho/go-ecommerce/src/internal/domain/entity"
+	"github.com/marcofilho/go-ecommerce/src/usecase/discount"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -20,8 +21,8 @@ type mockDiscountService struct {
 	mock.Mock
 }
 
-func (m *mockDiscountService) CreateDiscount(ctx context.Context, discount *entity.Discount) error {
-	args := m.Called(ctx, discount)
+func (m *mockDiscountService) CreateDiscount(ctx context.Context, discount *entity.Discount, productIDs, categoryIDs, userIDs []uuid.UUID, userUsageLimit *int) error {
+	args := m.Called(ctx, discount, productIDs, categoryIDs, userIDs, userUsageLimit)
 	return args.Error(0)
 }
 
@@ -33,8 +34,8 @@ func (m *mockDiscountService) GetDiscountByID(ctx context.Context, id uuid.UUID)
 	return args.Get(0).(*entity.Discount), args.Error(1)
 }
 
-func (m *mockDiscountService) UpdateDiscount(ctx context.Context, discount *entity.Discount) error {
-	args := m.Called(ctx, discount)
+func (m *mockDiscountService) UpdateDiscount(ctx context.Context, discount *entity.Discount, productIDs, categoryIDs, userIDs []uuid.UUID, userUsageLimit *int) error {
+	args := m.Called(ctx, discount, productIDs, categoryIDs, userIDs, userUsageLimit)
 	return args.Error(0)
 }
 
@@ -44,6 +45,19 @@ func (m *mockDiscountService) GetDiscountByPromoCode(ctx context.Context, promoC
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*entity.Discount), args.Error(1)
+}
+
+func (m *mockDiscountService) ValidateDiscountForOrder(ctx context.Context, promoCode string, userID uuid.UUID, orderItems []discount.OrderItemInfo, orderTotal float64) (*discount.DiscountValidationResult, error) {
+	args := m.Called(ctx, promoCode, userID, orderItems, orderTotal)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*discount.DiscountValidationResult), args.Error(1)
+}
+
+func (m *mockDiscountService) ApplyDiscount(ctx context.Context, discountID, userID uuid.UUID) error {
+	args := m.Called(ctx, discountID, userID)
+	return args.Error(0)
 }
 
 func TestDiscountHandler_CreateDiscount_Success(t *testing.T) {
@@ -61,7 +75,7 @@ func TestDiscountHandler_CreateDiscount_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/discounts", bytes.NewBuffer(body))
 	rec := httptest.NewRecorder()
 
-	service.On("CreateDiscount", mock.Anything, mock.AnythingOfType("*entity.Discount")).Return(nil)
+	service.On("CreateDiscount", mock.Anything, mock.AnythingOfType("*entity.Discount"), mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	handler.CreateDiscount(rec, req)
 
@@ -101,7 +115,7 @@ func TestDiscountHandler_CreateDiscount_UseCaseError(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/discounts", bytes.NewBuffer(body))
 	rec := httptest.NewRecorder()
 
-	service.On("CreateDiscount", mock.Anything, mock.AnythingOfType("*entity.Discount")).Return(errors.New("service error"))
+	service.On("CreateDiscount", mock.Anything, mock.AnythingOfType("*entity.Discount"), mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("service error"))
 
 	handler.CreateDiscount(rec, req)
 

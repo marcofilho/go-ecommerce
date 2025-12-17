@@ -155,19 +155,95 @@ func (uc *UseCase) CreateOrder(ctx context.Context, customerID int, items []Crea
 	// Calculate order total
 	order.CalculateTotal()
 
-	// Apply discount if promo code provided
+	// Apply discount if promo code provided (with enhanced validation)
 	if promoCode != "" {
-		discount, err := uc.discountRepo.GetByPromoCode(ctx, promoCode)
+		// Get discount with all relationships (products, categories, users)
+		discount, err := uc.discountRepo.GetByPromoCodeWithRelations(ctx, promoCode)
 		if err != nil {
 			return nil, errors.New("invalid or inactive promo code")
 		}
 
-		// Apply discount directly to total
-		discountedTotal, err := discount.ApplyDiscount(order.TotalPrice)
-		if err != nil {
+		// Validate discount is active and not expired
+		if !discount.IsValid() {
+			return nil, errors.New("discount is not valid, expired, or has reached usage limit")
+		}
+
+		// Check if user is authorized (if discount is user-specific)
+		userID := uuid.MustParse("00000000-0000-0000-0000-000000000000") // TODO: Get from auth context
+		if len(discount.Users) > 0 {
+			isAuthorized := false
+			var userUsage *entity.DiscountUser
+
+			for _, u := range discount.Users {
+				if u.ID == userID {
+					isAuthorized = true
+					// Check per-user usage limits
+					userUsage, _ = uc.discountRepo.GetUserUsage(ctx, discount.ID, userID)
+					break
+				}
+			}
+
+			if !isAuthorized {
+				return nil, errors.New("this discount is not available for your account")
+			}
+
+			if userUsage != nil && !discount.CanBeUsedBy(userUsage.UsageCount, userUsage.UsageLimit) {
+				return nil, errors.New("you have reached the usage limit for this discount")
+			}
+		}
+
+		// Check which items the discount applies to
+		applicableTotal := 0.0
+		applicableItems := []string{}
+
+		for _, item := range orderItems {
+			// Get product with categories
+			product, err := uc.productRepo.GetByID(ctx, item.ProductID)
+			if err != nil {
+				continue
+			}
+
+			// Extract category IDs
+			categoryIDs := make([]uuid.UUID, 0, len(product.Categories))
+			for _, cat := range product.Categories {
+				categoryIDs = append(categoryIDs, cat.ID)
+			}
+
+			// Check if discount applies to this product
+			if discount.AppliesTo(item.ProductID, categoryIDs) {
+				applicableTotal += item.TotalPrice
+				applicableItems = append(applicableItems, item.ProductID.String())
+			}
+		}
+
+		// If discount is product/category specific, check if any items match
+		if len(discount.Products) > 0 || len(discount.Categories) > 0 {
+			if len(applicableItems) == 0 {
+				return nil, errors.New("discount does not apply to any items in your order")
+			}
+			// Apply discount only to applicable items
+			discountedTotal, err := discount.ApplyDiscount(applicableTotal)
+			if err != nil {
+				return nil, err
+			}
+			discountAmount := applicableTotal - discountedTotal
+			order.TotalPrice -= discountAmount
+		} else {
+			// Site-wide discount: apply to entire order
+			discountedTotal, err := discount.ApplyDiscount(order.TotalPrice)
+			if err != nil {
+				return nil, err
+			}
+			order.TotalPrice = discountedTotal
+		}
+
+		// Increment usage counters
+		if err := uc.discountRepo.IncrementUsage(ctx, discount.ID); err != nil {
 			return nil, err
 		}
-		order.TotalPrice = discountedTotal
+		if err := uc.discountRepo.IncrementUserUsage(ctx, discount.ID, userID); err != nil {
+			// Log but don't fail the order
+		}
 	}
 
 	if err := order.Validate(); err != nil {

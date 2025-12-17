@@ -74,7 +74,7 @@ id | email                | password_hash      | name       | role     | created
 
 ### 2. discounts
 
-Stores promotional discount codes with percentage or fixed amount values.
+Stores promotional discount codes with advanced targeting and usage tracking. The enhanced discount system supports flexible discount targeting by products, categories, and users, with comprehensive usage tracking and validation.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
@@ -83,27 +83,97 @@ Stores promotional discount codes with percentage or fixed amount values.
 | discount_type | VARCHAR(50) | NOT NULL | Type: 'percentage' or 'amount' |
 | value | DECIMAL(10,2) | NOT NULL | Discount value (percentage 0-100 or fixed amount) |
 | active | BOOLEAN | NOT NULL, DEFAULT true | Whether the discount is currently active |
+| min_purchase_amount | DECIMAL(10,2) | NULL | Minimum order total required (NULL = no minimum) |
+| max_discount_amount | DECIMAL(10,2) | NULL | Maximum discount cap (NULL = no cap) |
+| usage_limit | INTEGER | NULL | Total number of times discount can be used (NULL = unlimited) |
+| usage_count | INTEGER | NOT NULL, DEFAULT 0 | Current number of times discount has been used |
+| valid_from | TIMESTAMP | NULL | Discount becomes valid from this time (NULL = valid now) |
+| valid_until | TIMESTAMP | NULL | Discount expires at this time (NULL = never expires) |
 | created_at | TIMESTAMP | NOT NULL | Creation timestamp |
 | updated_at | TIMESTAMP | NOT NULL | Last update timestamp |
+| deleted_at | TIMESTAMP | NULL | Soft delete timestamp (NULL = not deleted) |
 
 **Indexes:**
 - PRIMARY KEY on `id`
 - UNIQUE INDEX on `promo_code`
+- INDEX on `active, deleted_at` (for active discount queries)
+- INDEX on `valid_from, valid_until` (for date range queries)
 
 **Business Rules:**
 - Percentage discounts: value must be between 0 and 100
 - Amount discounts: value is the fixed dollar amount to subtract
-- Only active discounts can be applied to orders
-- Promo codes are case-sensitive
+- Only active, non-deleted discounts can be applied
+- Discounts can target specific products, categories, or users (see junction tables below)
+- Empty associations mean the discount applies to all (site-wide)
+- Usage limits are enforced at both global and per-user levels
+- Date ranges are validated (valid_from must be before valid_until)
 
 **Example:**
 ```sql
-id                                   | promo_code | discount_type | value | active | created_at          | updated_at
--------------------------------------+------------+---------------+-------+--------+---------------------+---------------------
-880e8400-e29b-41d4-a716-446655440003 | SAVE20     | percentage    | 20.00 | true   | 2025-12-14 10:00:00 | 2025-12-14 10:00:00
-990e8400-e29b-41d4-a716-446655440004 | SAVE15     | amount        | 15.00 | true   | 2025-12-14 10:01:00 | 2025-12-14 10:01:00
-aа0e8400-e29b-41d4-a716-446655440005 | SUMMER50   | percentage    | 50.00 | false  | 2025-12-14 10:02:00 | 2025-12-14 10:02:00
+id                                   | promo_code | discount_type | value | active | min_purchase | max_discount | usage_limit | usage_count | valid_from          | valid_until         
+-------------------------------------+------------+---------------+-------+--------+--------------+--------------+-------------+-------------+---------------------+---------------------
+880e8400-e29b-41d4-a716-446655440003 | SAVE20     | percentage    | 20.00 | true   | 50.00        | 100.00       | 1000        | 45          | 2025-01-01 00:00:00 | 2025-12-31 23:59:59
+990e8400-e29b-41d4-a716-446655440004 | VIP50      | amount        | 50.00 | true   | 100.00       | NULL         | NULL        | 12          | NULL                | NULL
+aа0e8400-e29b-41d4-a716-446655440005 | SUMMER50   | percentage    | 50.00 | false  | NULL         | NULL         | 500         | 500         | 2025-06-01 00:00:00 | 2025-08-31 23:59:59
 ```
+
+---
+
+### 2a. discount_products (Junction Table)
+
+Links discounts to specific products. If a discount has no product associations, it applies to all products.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| discount_id | UUID | PRIMARY KEY, FOREIGN KEY → discounts(id) | Reference to discount |
+| product_id | UUID | PRIMARY KEY, FOREIGN KEY → products(id) | Reference to product |
+
+**Indexes:**
+- PRIMARY KEY on `(discount_id, product_id)`
+- FOREIGN KEY from `discount_id` to `discounts(id)` ON DELETE CASCADE
+- FOREIGN KEY from `product_id` to `products(id)` ON DELETE CASCADE
+- INDEX on `product_id` (for reverse lookups)
+
+---
+
+### 2b. discount_categories (Junction Table)
+
+Links discounts to product categories. If a discount has no category associations, it applies to all categories.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| discount_id | UUID | PRIMARY KEY, FOREIGN KEY → discounts(id) | Reference to discount |
+| category_id | UUID | PRIMARY KEY, FOREIGN KEY → categories(id) | Reference to category |
+
+**Indexes:**
+- PRIMARY KEY on `(discount_id, category_id)`
+- FOREIGN KEY from `discount_id` to `discounts(id)` ON DELETE CASCADE
+- FOREIGN KEY from `category_id` to `categories(id)` ON DELETE CASCADE
+- INDEX on `category_id` (for reverse lookups)
+
+---
+
+### 2c. discount_users (Junction Table)
+
+Links discounts to specific users with per-user usage tracking. If a discount has no user associations, it can be used by any user.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| discount_id | UUID | PRIMARY KEY, FOREIGN KEY → discounts(id) | Reference to discount |
+| user_id | INTEGER | PRIMARY KEY, FOREIGN KEY → users(id) | Reference to user |
+| usage_limit | INTEGER | NULL | Per-user usage limit (NULL = no per-user limit) |
+| usage_count | INTEGER | NOT NULL, DEFAULT 0 | Times this user has used the discount |
+
+**Indexes:**
+- PRIMARY KEY on `(discount_id, user_id)`
+- FOREIGN KEY from `discount_id` to `discounts(id)` ON DELETE CASCADE
+- FOREIGN KEY from `user_id` to `users(id)` ON DELETE CASCADE
+- INDEX on `user_id` (for user-specific discount lookups)
+
+**Business Rules:**
+- Per-user usage limits override global limits for targeted users
+- Usage count is incremented on successful order placement
+- Users can only use VIP/targeted discounts if they're in this table
 
 ---
 
